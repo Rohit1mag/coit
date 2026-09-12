@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Bell, FileSearch, Link2, ShieldCheck } from "lucide-react";
+import { ComparisonTable } from "@/components/marketing/comparison-table";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { ProductPreview } from "@/components/marketing/product-preview";
 import { Button } from "@/components/ui/button";
@@ -99,7 +100,7 @@ export default function LandingPage() {
       </section>
 
       <section id="pricing" className="border-t bg-card">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 lg:grid-cols-[1fr_24rem]">
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 pb-12 pt-20 lg:grid-cols-[1fr_24rem]">
           <div>
             <p className="text-sm font-medium text-muted-foreground">Pricing</p>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight">One plan. Built for a small office.</h2>
@@ -126,6 +127,15 @@ export default function LandingPage() {
             <Button className="mt-6 h-11 w-full" asChild>
               <Link href="/signup">Start free trial</Link>
             </Button>
+          </div>
+        </div>
+        <div className="mx-auto max-w-6xl px-4 pb-20">
+          <p className="text-sm font-medium text-muted-foreground">Compared to</p>
+          <h3 className="mt-2 text-xl font-semibold tracking-tight">
+            A spreadsheet, SubCertify, and myCOI
+          </h3>
+          <div className="mt-6">
+            <ComparisonTable />
           </div>
         </div>
       </section>
