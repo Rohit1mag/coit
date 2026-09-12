@@ -8,7 +8,6 @@ import { LiabilityDisclaimer } from "@/components/liability-disclaimer";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +18,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { REVIEW_CONFIDENCE_THRESHOLD, confidencePercent } from "@/lib/coi";
 import type { Document, ReviewStatus, Vendor } from "@/types/database";
@@ -35,9 +33,6 @@ export function ReviewForm({
   const [effectiveDate, setEffectiveDate] = useState(document.effective_date ?? "");
   const [expirationDate, setExpirationDate] = useState(document.expiration_date ?? "");
   const [limit, setLimit] = useState(document.liability_limit ?? "");
-  const [additionalInsured, setAdditionalInsured] = useState(document.additional_insured === true);
-  const [waiver, setWaiver] = useState(document.waiver_subrogation === true);
-  const [workersComp, setWorkersComp] = useState(document.workers_comp_included === true);
   const [notes, setNotes] = useState(document.notes ?? "");
   const [rejectReason, setRejectReason] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -59,9 +54,6 @@ export function ReviewForm({
           effective_date: effectiveDate || null,
           expiration_date: expirationDate || null,
           gl_occurrence_limit: limit || null,
-          additional_insured: additionalInsured,
-          waiver_subrogation: waiver,
-          workers_comp: workersComp,
           notes: notes || null,
           reject_reason: action === "reject" ? rejectReason : undefined,
         }),
@@ -102,7 +94,7 @@ export function ReviewForm({
           <AlertTriangle className="size-4" />
           <AlertTitle>Please double check dates manually against the PDF.</AlertTitle>
           <AlertDescription>
-            Extraction confidence is below 85%. Confirm every field before you approve.
+            Extraction confidence is below 85%. Confirm the dates and limit against the PDF.
           </AlertDescription>
         </Alert>
       ) : null}
@@ -144,27 +136,6 @@ export function ReviewForm({
         />
       </div>
 
-      <label className="flex items-center gap-2 text-sm">
-        <Checkbox
-          checked={additionalInsured}
-          onCheckedChange={(value) => setAdditionalInsured(value === true)}
-        />
-        Additional Insured checked on certificate
-      </label>
-
-      <label className="flex items-center gap-2 text-sm">
-        <Checkbox checked={waiver} onCheckedChange={(value) => setWaiver(value === true)} />
-        Waiver of Subrogation checked
-      </label>
-
-      <div className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2">
-        <Label htmlFor="workers-comp">Workers&apos; Comp included?</Label>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">{workersComp ? "Yes" : "No"}</span>
-          <Switch id="workers-comp" checked={workersComp} onCheckedChange={setWorkersComp} />
-        </div>
-      </div>
-
       <div className="grid gap-1.5">
         <Label htmlFor="notes">Note / memo</Label>
         <Textarea
@@ -172,7 +143,7 @@ export function ReviewForm({
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
           placeholder="Internal notes for the office"
-          rows={4}
+          rows={3}
         />
       </div>
 
