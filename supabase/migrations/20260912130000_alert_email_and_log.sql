@@ -33,7 +33,7 @@ begin
   );
 
   billing_status := case
-    when lower(coalesce(new.email, '')) = 'rohitkota4@gmail.com' then 'complimentary'
+    when lower(coalesce(new.email, '')) in ('rohitkota4@gmail.com', 'rkdscnd@gmail.com') then 'complimentary'
     else 'none'
   end;
 

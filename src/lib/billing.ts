@@ -9,7 +9,10 @@ export const PUBLIC_UPLOAD_PAUSED_MESSAGE =
 
 const CLOSED_BILLING = new Set(["expired", "cancelled", "canceled", "unpaid", "paused"]);
 
-const HARDCODED_COMPLIMENTARY_EMAILS = ["rohitkota4@gmail.com"];
+const HARDCODED_COMPLIMENTARY_EMAILS = [
+  "rohitkota4@gmail.com",
+  "rkdscnd@gmail.com",
+];
 
 function complimentaryEmails() {
   const fromEnv = (process.env.COMPLIMENTARY_EMAILS ?? "")
