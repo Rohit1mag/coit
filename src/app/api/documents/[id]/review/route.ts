@@ -10,7 +10,6 @@ export const runtime = "nodejs";
 
 const bodySchema = z.object({
   action: z.enum(["approve", "reject"]),
-  effective_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
   expiration_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
   gl_occurrence_limit: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
@@ -93,7 +92,6 @@ export async function PATCH(request: Request, context: RouteContext) {
     const { error: updateError } = await supabase
       .from("documents")
       .update({
-        effective_date: body.effective_date ?? null,
         expiration_date: expiration,
         liability_limit: body.gl_occurrence_limit ?? null,
         notes: body.notes ?? null,

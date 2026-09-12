@@ -9,7 +9,7 @@ function getResend() {
 }
 
 function fromAddress() {
-  return process.env.EMAIL_FROM?.trim() || "COI Tracker <onboarding@resend.dev>";
+  return process.env.EMAIL_FROM?.trim() || "SubCertify <onboarding@resend.dev>";
 }
 
 function layout(title: string, body: string) {
@@ -22,7 +22,7 @@ function layout(title: string, body: string) {
           <table role="presentation" width="100%" style="max-width:560px;background:#ffffff;border:1px solid #e4e4e7;border-radius:12px;padding:32px;">
             <tr>
               <td>
-                <p style="margin:0 0 8px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#71717a;">COI Tracker</p>
+                <p style="margin:0 0 8px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#71717a;">SubCertify</p>
                 <h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;">${title}</h1>
                 ${body}
               </td>

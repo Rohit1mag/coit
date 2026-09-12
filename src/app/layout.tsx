@@ -15,13 +15,13 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "COI Tracker",
-    template: "%s · COI Tracker",
+    default: "SubCertify",
+    template: "%s · SubCertify",
   },
   description:
     "Certificate of Insurance tracking for general contractors and property managers. Collect ACORD 25s, watch expirations, and remind the sub before you're exposed.",
   openGraph: {
-    title: "COI Tracker",
+    title: "SubCertify",
     description:
       "Know which subcontractors have expired certificates — before you're exposed.",
     type: "website",

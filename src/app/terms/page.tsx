@@ -11,7 +11,7 @@ export default function TermsPage() {
         <p className="mt-2 text-sm text-muted-foreground">Last updated September 11, 2026</p>
         <div className="mt-8 space-y-4 text-sm leading-6 text-muted-foreground">
           <p>
-            COI Tracker is software for organizing Certificates of Insurance. It is not an insurance
+            SubCertify is software for organizing Certificates of Insurance. It is not an insurance
             broker, agent, or advisor, and it does not confirm that a policy is valid with the
             carrier.
           </p>

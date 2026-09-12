@@ -30,7 +30,6 @@ export function ReviewForm({
   vendor: Pick<Vendor, "id" | "name" | "contact_email" | "trade">;
 }) {
   const router = useRouter();
-  const [effectiveDate, setEffectiveDate] = useState(document.effective_date ?? "");
   const [expirationDate, setExpirationDate] = useState(document.expiration_date ?? "");
   const [limit, setLimit] = useState(document.liability_limit ?? "");
   const [notes, setNotes] = useState(document.notes ?? "");
@@ -51,7 +50,6 @@ export function ReviewForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action,
-          effective_date: effectiveDate || null,
           expiration_date: expirationDate || null,
           gl_occurrence_limit: limit || null,
           notes: notes || null,
@@ -94,7 +92,7 @@ export function ReviewForm({
           <AlertTriangle className="size-4" />
           <AlertTitle>Please double check dates manually against the PDF.</AlertTitle>
           <AlertDescription>
-            Extraction confidence is below 85%. Confirm the dates and limit against the PDF.
+            Extraction confidence is below 85%. Confirm the expiration date and limit against the PDF.
           </AlertDescription>
         </Alert>
       ) : null}
@@ -113,16 +111,6 @@ export function ReviewForm({
           type="date"
           value={expirationDate}
           onChange={(event) => setExpirationDate(event.target.value)}
-        />
-      </div>
-
-      <div className="grid gap-1.5">
-        <Label htmlFor="gl-effective">Policy effective date</Label>
-        <Input
-          id="gl-effective"
-          type="date"
-          value={effectiveDate}
-          onChange={(event) => setEffectiveDate(event.target.value)}
         />
       </div>
 
@@ -164,7 +152,7 @@ export function ReviewForm({
             <DialogTitle>Approve this certificate?</DialogTitle>
             <DialogDescription>
               This marks the COI as reviewed and schedules expiration reminders. You are confirming
-              the dates and limits against the PDF.
+              the expiration date and limit against the PDF.
             </DialogDescription>
           </DialogHeader>
           <LiabilityDisclaimer />

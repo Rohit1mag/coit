@@ -6,7 +6,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     <div className="flex min-h-full flex-col bg-background">
       <header className="border-b bg-card/80">
         <div className="mx-auto flex h-16 max-w-6xl items-center px-4">
-          <Link href="/" aria-label="COI Tracker home">
+          <Link href="/" aria-label="SubCertify home">
             <Logo />
           </Link>
         </div>

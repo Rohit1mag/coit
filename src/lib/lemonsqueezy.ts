@@ -42,7 +42,7 @@ export async function createSubscriptionCheckout(input: {
       enabledVariants: [variantId],
       redirectUrl: input.redirectUrl,
       receiptButtonText: "Open dashboard",
-      receiptThankYouNote: "Your COI Tracker trial is starting.",
+      receiptThankYouNote: "Your SubCertify trial is starting.",
     },
   });
 

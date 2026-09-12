@@ -39,7 +39,7 @@ export function SiteFooter() {
       <div className="border-t">
         <div className="mx-auto max-w-6xl space-y-2 px-4 py-4">
           <LiabilityDisclaimer />
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} COIT.</p>
+          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} SubCertify.</p>
         </div>
       </div>
     </footer>

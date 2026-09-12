@@ -11,7 +11,7 @@ export default function PrivacyPage() {
         <p className="mt-2 text-sm text-muted-foreground">Last updated September 11, 2026</p>
         <div className="mt-8 space-y-4 text-sm leading-6 text-muted-foreground">
           <p>
-            COI Tracker stores the account, organization, vendor, and certificate data you submit so
+            SubCertify stores the account, organization, vendor, and certificate data you submit so
             we can show coverage status and send expiration reminders.
           </p>
           <p>

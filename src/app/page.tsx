@@ -45,7 +45,7 @@ export default function LandingPage() {
             Know which subs are uncovered before the job starts.
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground text-pretty">
-            COI Tracker collects certificates, reads the expiration date, and emails the sub a new
+            SubCertify collects certificates, reads the expiration date, and emails the sub a new
             upload link before you&apos;re the one exposed.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -109,7 +109,7 @@ export default function LandingPage() {
             </p>
           </div>
           <div className="rounded-2xl border bg-background p-6 shadow-sm">
-            <p className="text-sm text-muted-foreground">COIT</p>
+            <p className="text-sm text-muted-foreground">SubCertify</p>
             <p className="mt-2 flex items-baseline gap-1">
               <span className="text-4xl font-semibold tracking-tight">$99</span>
               <span className="text-muted-foreground">/month</span>
