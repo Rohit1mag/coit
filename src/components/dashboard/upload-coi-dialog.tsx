@@ -86,12 +86,15 @@ export function UploadCoiDialog({
           trade: trade || null,
         }),
       });
-      const payload = (await response.json()) as { error?: string };
+      const payload = (await response.json()) as { error?: string; document?: { id?: string } };
       if (!response.ok) throw new Error(payload.error ?? "Parse failed");
 
-      toast.success("Certificate uploaded and parsed.");
+      toast.success("Certificate uploaded. Confirm the extracted fields.");
       reset();
       setOpen(false);
+      if (payload.document?.id) {
+        router.push(`/dashboard/review/${payload.document.id}`);
+      }
       router.refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Upload failed");

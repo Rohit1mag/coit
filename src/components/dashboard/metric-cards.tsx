@@ -1,41 +1,50 @@
-import { AlertTriangle, Building2, ShieldX } from "lucide-react";
+import { AlertTriangle, Building2, Clock, ShieldX } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function MetricCards({
   active,
+  pendingReview,
   expiring,
   expired,
 }: {
   active: number;
+  pendingReview: number;
   expiring: number;
   expired: number;
 }) {
   const cards = [
     {
-      label: "Active vendors",
+      label: "Active subcontractors",
       value: active,
-      hint: "Subcontractors on file",
+      hint: "Subs on file",
       icon: Building2,
       className: "",
     },
     {
+      label: "Pending review",
+      value: pendingReview,
+      hint: "Needs GC confirmation",
+      icon: Clock,
+      className: pendingReview > 0 ? "text-sky-700" : "",
+    },
+    {
       label: "Expiring in 30 days",
       value: expiring,
-      hint: "Renewals to chase this month",
+      hint: "Approved coverage ending soon",
       icon: AlertTriangle,
       className: "text-amber-700",
     },
     {
       label: "Expired",
       value: expired,
-      hint: "No current coverage on file",
+      hint: "Approved coverage lapsed",
       icon: ShieldX,
       className: "text-red-700",
     },
   ];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {cards.map((card) => {
         const Icon = card.icon;
         return (

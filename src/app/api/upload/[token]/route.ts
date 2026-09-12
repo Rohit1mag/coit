@@ -52,6 +52,9 @@ export async function POST(request: Request, context: RouteContext) {
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "A PDF or image file is required." }, { status: 400 });
     }
+    if (file.size > 10 * 1024 * 1024) {
+      return NextResponse.json({ error: "File must be 10MB or smaller." }, { status: 400 });
+    }
 
     const vendorName = String(form.get("vendor_name") ?? invite.vendor_name ?? "").trim();
     const contactEmail = String(form.get("contact_email") ?? invite.contact_email ?? "").trim();

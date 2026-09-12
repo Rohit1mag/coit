@@ -1,7 +1,8 @@
 import { addDays, format, parseISO } from "date-fns";
-import type { DocumentStatus } from "@/types/database";
+import type { DocumentStatus, ReviewStatus } from "@/types/database";
 
-export const DEFAULT_ALERT_CADENCES = [30, 14, 3] as const;
+export const DEFAULT_ALERT_CADENCES = [30, 14, 7] as const;
+export const REVIEW_CONFIDENCE_THRESHOLD = 0.85;
 export const EXPIRING_SOON_DAYS = 30;
 export const STORAGE_BUCKET = "coi-documents";
 
@@ -42,6 +43,22 @@ export function statusLabel(status: DocumentStatus | null | undefined) {
     default:
       return "Pending";
   }
+}
+
+export function reviewLabel(
+  review: ReviewStatus | null | undefined,
+  status?: DocumentStatus | null,
+) {
+  if (review === "rejected") return "Rejected";
+  if (review !== "approved") return "Pending Review";
+  if (status === "expired") return "Expired";
+  return "Approved";
+}
+
+export function confidencePercent(score: number | null | undefined) {
+  if (score == null || Number.isNaN(score)) return null;
+  const normalized = score > 1 ? score : score * 100;
+  return Math.round(normalized);
 }
 
 export function isPaidStatus(status: string | null | undefined) {

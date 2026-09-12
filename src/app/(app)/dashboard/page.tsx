@@ -23,8 +23,15 @@ export default async function DashboardPage() {
   }
 
   const vendors = await withPreviewUrls((data ?? []) as VendorLatest[]);
-  const expiring = vendors.filter((row) => row.status === "expiring_soon").length;
-  const expired = vendors.filter((row) => row.status === "expired").length;
+  const pendingReview = vendors.filter(
+    (row) => row.document_id && row.review_status !== "approved" && row.review_status !== "rejected",
+  ).length;
+  const expiring = vendors.filter(
+    (row) => row.review_status === "approved" && row.status === "expiring_soon",
+  ).length;
+  const expired = vendors.filter(
+    (row) => row.review_status === "approved" && row.status === "expired",
+  ).length;
 
   return (
     <div className="space-y-8">
@@ -57,7 +64,12 @@ export default async function DashboardPage() {
         </div>
       ) : (
         <>
-          <MetricCards active={vendors.length} expiring={expiring} expired={expired} />
+          <MetricCards
+            active={vendors.length}
+            pendingReview={pendingReview}
+            expiring={expiring}
+            expired={expired}
+          />
           <VendorTable vendors={vendors} />
         </>
       )}

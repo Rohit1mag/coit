@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format, parseISO } from "date-fns";
-import { ExternalLink, Loader2, Search, Trash2 } from "lucide-react";
+import { Copy, Loader2, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
@@ -35,10 +36,10 @@ import type { DocumentStatus, VendorLatest } from "@/types/database";
 
 const FILTERS = [
   { value: "all", label: "All statuses" },
-  { value: "valid", label: "Valid" },
-  { value: "expiring_soon", label: "Expiring soon" },
+  { value: "pending_review", label: "Pending review" },
+  { value: "approved", label: "Approved" },
   { value: "expired", label: "Expired" },
-  { value: "pending", label: "Pending" },
+  { value: "rejected", label: "Rejected" },
 ] as const;
 
 function formatDate(value: string | null) {
@@ -66,11 +67,30 @@ export function VendorTable({ vendors }: { vendors: VendorLatest[] }) {
         .join(" ")
         .toLowerCase();
       const matchesQuery = haystack.includes(query.toLowerCase().trim());
-      const current = vendor.status ?? "pending";
-      const matchesStatus = status === "all" || current === status;
+      const review = vendor.review_status ?? (vendor.document_id ? "pending_review" : null);
+      const matchesStatus =
+        status === "all" ||
+        (status === "expired" && review === "approved" && vendor.status === "expired") ||
+        (status === "approved" && review === "approved" && vendor.status !== "expired") ||
+        (status === "pending_review" && review === "pending_review") ||
+        (status === "rejected" && review === "rejected");
       return matchesQuery && matchesStatus;
     });
   }, [vendors, query, status, removed]);
+
+  async function copyInvite(vendor: VendorLatest) {
+    try {
+      const response = await fetch(`/api/vendors/${vendor.vendor_id}/invite-link`, { method: "POST" });
+      const payload = (await response.json()) as { error?: string; url?: string };
+      if (!response.ok || !payload.url) {
+        throw new Error(payload.error ?? "Could not create invite link");
+      }
+      await navigator.clipboard.writeText(payload.url);
+      toast.success("Invite link copied.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Copy failed");
+    }
+  }
 
   async function removeVendor() {
     if (!pending) return;
@@ -125,18 +145,15 @@ export function VendorTable({ vendors }: { vendors: VendorLatest[] }) {
               <TableHead>Vendor</TableHead>
               <TableHead>Contact email</TableHead>
               <TableHead>Trade</TableHead>
-              <TableHead>Expiration</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">COI</TableHead>
-              <TableHead className="w-12">
-                <span className="sr-only">Actions</span>
-              </TableHead>
+              <TableHead>GL expiration</TableHead>
+              <TableHead>Review status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
+                <TableCell colSpan={6} className="py-12 text-center text-muted-foreground">
                   No subcontractors match this filter.
                 </TableCell>
               </TableRow>
@@ -152,33 +169,37 @@ export function VendorTable({ vendors }: { vendors: VendorLatest[] }) {
                     {formatDate(vendor.expiration_date)}
                   </TableCell>
                   <TableCell>
-                    <StatusBadge status={vendor.status as DocumentStatus | null} />
+                    <StatusBadge
+                      status={vendor.status as DocumentStatus | null}
+                      review={vendor.review_status}
+                    />
                   </TableCell>
                   <TableCell className="text-right">
-                    {vendor.preview_url ? (
-                      <a
-                        href={vendor.preview_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-sm font-medium hover:underline"
+                    <div className="flex justify-end gap-1">
+                      {vendor.document_id ? (
+                        <Button type="button" variant="outline" size="sm" asChild>
+                          <Link href={`/dashboard/review/${vendor.document_id}`}>Review</Link>
+                        </Button>
+                      ) : null}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Copy invite link for ${vendor.name}`}
+                        onClick={() => copyInvite(vendor)}
                       >
-                        Preview
-                        <ExternalLink className="size-3.5" />
-                      </a>
-                    ) : (
-                      <span className="text-sm text-muted-foreground">None</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label={`Remove ${vendor.name}`}
-                      onClick={() => setPending(vendor)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
+                        <Copy className="size-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Remove ${vendor.name}`}
+                        onClick={() => setPending(vendor)}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { LiabilityDisclaimer } from "@/components/liability-disclaimer";
 import { Logo } from "@/components/logo";
 import { PublicUploadForm } from "@/components/upload/public-upload-form";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -32,11 +33,11 @@ export default async function PublicUploadPage({
         </div>
       </header>
       <main className="mx-auto w-full max-w-lg px-4 py-10">
-        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Certificate request
-        </p>
-        <p className="mb-6 text-sm text-muted-foreground">
-          Requested by <span className="font-medium text-foreground">{contractorName ?? "your contractor"}</span>
+        <h1 className="text-xl font-semibold tracking-tight">
+          {contractorName ?? "Your contractor"} requests your updated Certificate of Insurance (ACORD 25).
+        </h1>
+        <p className="mb-6 mt-2 text-sm text-muted-foreground">
+          No account required. Upload a PDF or a clear photo from your phone.
         </p>
         <PublicUploadForm
           token={token}
@@ -45,6 +46,9 @@ export default async function PublicUploadPage({
           contactEmail={invite.contact_email}
           trade={invite.trade}
         />
+        <div className="mt-8">
+          <LiabilityDisclaimer />
+        </div>
       </main>
     </div>
   );

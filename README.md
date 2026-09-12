@@ -6,7 +6,7 @@ Next.js App Router · Supabase · Lemon Squeezy ($99/mo, 14-day trial) · Resend
 
 ## Setup
 
-1. Create a Supabase project. Run `supabase/migrations/20240911000000_initial_schema.sql` in the SQL editor. If you already applied the original Stripe columns, also run `supabase/migrations/20260911000000_lemonsqueezy.sql`.
+1. Create a Supabase project. Run the SQL files in `supabase/migrations/` in order. If you already applied the original Stripe columns, run `20260911000000_lemonsqueezy.sql`. Existing workspaces also need `20260912000000_review_workflow.sql`.
 2. In Authentication, enable Email (password + magic link). Add `http://localhost:3000/auth/callback` to redirect URLs.
 3. Copy `.env.example` to `.env.local` and fill in keys.
 4. In Lemon Squeezy, create a **COI Tracker** subscription product at $99/month with a 14-day trial. Paste the store id and variant id into `LEMONSQUEEZY_STORE_ID` and `LEMONSQUEEZY_VARIANT_ID`.
@@ -37,8 +37,9 @@ Lemon Squeezy is the merchant of record and collects sales tax for you.
 | --- | --- |
 | `/` | Landing + $99/mo CTA |
 | `/login`, `/signup` | Password + magic link |
-| `/dashboard` | Metrics, vendor table, upload, invite |
-| `/settings` | Lemon Squeezy portal + alert cadences |
+| `/dashboard` | Metrics, subcontractor table, upload, invite |
+| `/dashboard/review/[documentId]` | Split-screen PDF + AI fields; approve or reject |
+| `/settings` | Lemon Squeezy portal + alert cadences (30/14/7) |
 | `/upload/[token]` | Public subcontractor upload |
 | `/api/parse-coi` | Vision extraction + vendor upsert |
 | `/api/cron/check-expirations` | Daily reminder emails |

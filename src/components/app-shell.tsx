@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, LogOut, Settings } from "lucide-react";
+import { LiabilityDisclaimer } from "@/components/liability-disclaimer";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
@@ -73,7 +74,19 @@ export function AppShell({
           </div>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl px-4 py-8">{children}</main>
+      <main
+        className={cn(
+          "mx-auto w-full px-4 py-8",
+          pathname.includes("/review") ? "max-w-[1400px]" : "max-w-6xl",
+        )}
+      >
+        {children}
+      </main>
+      <footer className="border-t">
+        <div className="mx-auto max-w-6xl px-4 py-4">
+          <LiabilityDisclaimer />
+        </div>
+      </footer>
     </div>
   );
 }

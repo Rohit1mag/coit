@@ -34,8 +34,8 @@ export function PublicUploadForm({
 
   function onFile(next: File | null) {
     if (!next) return;
-    if (next.size > 20 * 1024 * 1024) {
-      setError("File must be 20MB or smaller.");
+    if (next.size > 10 * 1024 * 1024) {
+      setError("File must be 10MB or smaller.");
       return;
     }
     setError(null);
@@ -115,7 +115,7 @@ export function PublicUploadForm({
           >
             <Upload className="mb-2 size-5 text-muted-foreground" />
             <span className="font-medium">{file ? file.name : "Drop your COI here"}</span>
-            <span className="mt-1 text-muted-foreground">PDF, JPG, or PNG · 20MB max</span>
+            <span className="mt-1 text-muted-foreground">PDF, JPG, or PNG · 10MB max</span>
             <input
               type="file"
               accept={ACCEPT}

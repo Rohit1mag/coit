@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 export function AlertCadenceForm({ cadences }: { cadences: number[] }) {
   const router = useRouter();
   const [values, setValues] = useState(
-    (cadences.length ? cadences : [30, 14, 3]).slice(0, 3).concat([30, 14, 3]).slice(0, 3)
+    (cadences.length ? cadences : [30, 14, 7]).slice(0, 3).concat([30, 14, 7]).slice(0, 3)
   );
   const [busy, setBusy] = useState(false);
 

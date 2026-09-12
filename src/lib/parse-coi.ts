@@ -2,6 +2,7 @@ import { generateText, Output } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
+import { sendNewCoiReadyEmail } from "@/lib/email";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { deriveStatus, STORAGE_BUCKET } from "@/lib/coi";
 import type { CoiExtraction } from "@/types/database";
@@ -17,23 +18,36 @@ function toIsoDate(value: string) {
   return trimmed;
 }
 
-const isoDate = z.string().transform(toIsoDate).pipe(z.string().regex(/^\d{4}-\d{2}-\d{2}$/));
+const optionalIsoDate = z
+  .union([z.string(), z.null()])
+  .transform((value) => {
+    if (!value?.trim()) return null;
+    const iso = toIsoDate(value);
+    return /^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso : null;
+  });
 
 export const coiExtractionSchema = z.object({
-  vendor_name: z.string(),
-  policy_effective_date: isoDate,
-  policy_expiration_date: isoDate,
-  general_liability_limit: z.string(),
-  workers_comp_included: z.boolean(),
-  confidence_score: z.number().min(0).max(1),
+  vendor_name: z.string().nullable(),
+  policy_effective_date: optionalIsoDate,
+  policy_expiration_date: optionalIsoDate,
+  gl_occurrence_limit: z.string().nullable(),
+  additional_insured_checked: z.boolean(),
+  waiver_of_subrogation_checked: z.boolean(),
+  workers_comp_present: z.boolean(),
+  confidence_score: z
+    .number()
+    .transform((value) => (value > 1 ? value / 100 : value))
+    .pipe(z.number().min(0).max(1)),
 });
 
 const SYSTEM_PROMPT = `You extract data from ACORD 25 Certificates of Insurance.
-Return only fields you can read from the document.
+Return only fields you can read from the document. Use null when a field is not visible.
 Dates must be YYYY-MM-DD (convert MM/DD/YYYY).
 vendor_name is the INSURED named on the form (the subcontractor/vendor), not the producer/agency and not the certificate holder.
-general_liability_limit is the commercial general liability each-occurrence limit, like "$1,000,000".
-workers_comp_included is true if a workers compensation policy is listed.
+gl_occurrence_limit is the commercial general liability each-occurrence limit, like "$1,000,000".
+additional_insured_checked is true if Additional Insured is marked on the certificate.
+waiver_of_subrogation_checked is true if Waiver of Subrogation is marked.
+workers_comp_present is true if a workers compensation policy is listed.
 confidence_score is 0-1 based on how readable the document is.`;
 
 function visionModel() {
@@ -188,10 +202,13 @@ export async function upsertVendorAndDocument(input: {
       file_url: input.path,
       effective_date: input.extracted?.policy_effective_date ?? null,
       expiration_date: expiration,
-      liability_limit: input.extracted?.general_liability_limit ?? null,
-      workers_comp_included: input.extracted?.workers_comp_included ?? null,
+      liability_limit: input.extracted?.gl_occurrence_limit ?? null,
+      workers_comp_included: input.extracted?.workers_comp_present ?? null,
+      additional_insured: input.extracted?.additional_insured_checked ?? null,
+      waiver_subrogation: input.extracted?.waiver_of_subrogation_checked ?? null,
       confidence_score: input.extracted?.confidence_score ?? null,
       status,
+      review_status: "pending_review",
       raw_ai_json: input.extracted ?? { error: input.parseError ?? "parse_failed" },
       upload_token: input.uploadToken ?? null,
     })
@@ -200,6 +217,26 @@ export async function upsertVendorAndDocument(input: {
 
   if (docError || !document) {
     throw new Error(docError?.message ?? "Failed to save document");
+  }
+
+  if (input.uploadToken) {
+    try {
+      const [{ data: org }, { data: owners }] = await Promise.all([
+        admin.from("organizations").select("name").eq("id", input.orgId).maybeSingle(),
+        admin.from("users").select("email").eq("org_id", input.orgId).in("role", ["owner", "admin"]),
+      ]);
+      const emails = (owners ?? []).map((user) => user.email).filter(Boolean);
+      if (emails.length > 0) {
+        await sendNewCoiReadyEmail({
+          to: emails,
+          contractorName: org?.name ?? "your workspace",
+          vendorName: name,
+          documentId: document.id,
+        });
+      }
+    } catch (error) {
+      console.warn("New COI notification failed", error);
+    }
   }
 
   return { vendorId, document };

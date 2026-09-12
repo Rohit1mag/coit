@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LiabilityDisclaimer } from "@/components/liability-disclaimer";
 import { Logo } from "@/components/logo";
 
 export function SiteFooter() {
@@ -36,9 +37,10 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t">
-        <p className="mx-auto max-w-6xl px-4 py-4 text-xs text-muted-foreground">
-          © {new Date().getFullYear()} COI Tracker. Software for tracking certificates — not insurance advice.
-        </p>
+        <div className="mx-auto max-w-6xl space-y-2 px-4 py-4">
+          <LiabilityDisclaimer />
+          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} COIT.</p>
+        </div>
       </div>
     </footer>
   );

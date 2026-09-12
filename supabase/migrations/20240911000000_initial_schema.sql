@@ -13,7 +13,7 @@ create table public.organizations (
   lemon_squeezy_customer_id text unique,
   lemon_squeezy_subscription_id text,
   lemon_squeezy_subscription_status text not null default 'none',
-  alert_cadences integer[] not null default '{30,14,3}',
+  alert_cadences integer[] not null default '{30,14,7}',
   created_at timestamptz not null default now()
 );
 
@@ -57,11 +57,18 @@ create table public.documents (
   expiration_date date,
   liability_limit text,
   workers_comp_included boolean,
+  additional_insured boolean,
+  waiver_subrogation boolean,
+  notes text,
   confidence_score numeric,
   status text not null default 'pending'
     check (status in ('pending', 'valid', 'expiring_soon', 'expired', 'parse_failed')),
+  review_status text not null default 'pending_review'
+    check (review_status in ('pending_review', 'approved', 'rejected')),
   raw_ai_json jsonb,
   upload_token text,
+  verified_by uuid references public.users (id) on delete set null,
+  verified_at timestamptz,
   created_at timestamptz not null default now()
 );
 
@@ -86,6 +93,7 @@ create index documents_org_id_idx on public.documents (org_id);
 create index documents_vendor_id_idx on public.documents (vendor_id);
 create index documents_expiration_idx on public.documents (expiration_date);
 create index documents_status_idx on public.documents (status);
+create index documents_review_status_idx on public.documents (org_id, review_status);
 create index invites_token_idx on public.invites (token);
 create index invites_org_id_idx on public.invites (org_id);
 create index alert_sends_org_sent_idx on public.alert_sends (org_id, sent_on);
@@ -111,8 +119,13 @@ select distinct on (v.id)
   d.expiration_date,
   d.liability_limit,
   d.workers_comp_included,
+  d.additional_insured,
+  d.waiver_subrogation,
+  d.notes,
   d.confidence_score,
   d.status,
+  d.review_status,
+  d.verified_at,
   d.created_at as document_created_at
 from public.vendors v
 left join public.documents d on d.vendor_id = v.id

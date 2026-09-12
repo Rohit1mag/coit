@@ -54,13 +54,14 @@ export async function GET(request: Request) {
   const failures: string[] = [];
 
   for (const org of (orgs ?? []) as Pick<Organization, "id" | "name" | "alert_cadences">[]) {
-    const cadences = org.alert_cadences?.length ? org.alert_cadences : [30, 14, 3];
+    const cadences = org.alert_cadences?.length ? org.alert_cadences : [30, 14, 7];
     const targetDates = new Set<string>([today, ...cadences.map((days) => utcDateOffset(days))]);
 
     const { data: rows } = await admin
       .from("vendor_latest_documents")
       .select("*")
       .eq("org_id", org.id)
+      .eq("review_status", "approved")
       .in("expiration_date", [...targetDates]);
 
     const { data: owners } = await admin

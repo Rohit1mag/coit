@@ -12,12 +12,12 @@ const steps = [
   },
   {
     title: "We read the coverage",
-    body: "Vendor name, expiration, GL limit, and workers’ comp come off the certificate. You see Valid, Expiring, or Expired.",
+    body: "Vendor name, expiration, GL limit, and endorsements come off the certificate. You confirm them on a split-screen before anything is approved.",
     icon: FileSearch,
   },
   {
     title: "Reminders go out automatically",
-    body: "You and the sub get email at 30, 14, and 3 days — and the day it lapses — with a one-click upload.",
+    body: "You and the sub get email at 30, 14, and 7 days — and the day it lapses — with a one-click upload.",
     icon: Bell,
   },
 ];
@@ -25,6 +25,7 @@ const steps = [
 const included = [
   "Unlimited subcontractors",
   "AI extraction from ACORD 25 PDFs and photos",
+  "1-click split-screen review before a COI is approved",
   "Public upload links (no vendor account)",
   "Email reminders to you and the sub",
   "Adjustable alert cadence",
@@ -108,7 +109,7 @@ export default function LandingPage() {
             </p>
           </div>
           <div className="rounded-2xl border bg-background p-6 shadow-sm">
-            <p className="text-sm text-muted-foreground">COI Tracker</p>
+            <p className="text-sm text-muted-foreground">COIT</p>
             <p className="mt-2 flex items-baseline gap-1">
               <span className="text-4xl font-semibold tracking-tight">$99</span>
               <span className="text-muted-foreground">/month</span>

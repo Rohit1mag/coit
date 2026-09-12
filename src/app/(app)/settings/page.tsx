@@ -37,7 +37,7 @@ export default async function SettingsPage({
         status={session.org.lemon_squeezy_subscription_status}
         configured={isBillingConfigured()}
       />
-      <AlertCadenceForm cadences={session.org.alert_cadences ?? [30, 14, 3]} />
+      <AlertCadenceForm cadences={session.org.alert_cadences ?? [30, 14, 7]} />
     </div>
   );
 }

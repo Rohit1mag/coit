@@ -19,9 +19,10 @@ export function ProductPreview() {
         <p className="text-xs font-medium text-muted-foreground">Certificates · sample board</p>
         <span className="w-10" />
       </div>
-      <div className="grid grid-cols-3 gap-3 border-b p-4">
+      <div className="grid grid-cols-2 gap-3 border-b p-4 sm:grid-cols-4">
         {[
-          { label: "On file", value: "24" },
+          { label: "Active subs", value: "24" },
+          { label: "Pending review", value: "2" },
           { label: "Expiring in 30 days", value: "3" },
           { label: "Expired", value: "1" },
         ].map((metric) => (

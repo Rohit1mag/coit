@@ -7,6 +7,8 @@ export type DocumentStatus =
   | "expired"
   | "parse_failed";
 
+export type ReviewStatus = "pending_review" | "approved" | "rejected";
+
 export type SubscriptionStatus =
   | "none"
   | "on_trial"
@@ -69,10 +71,16 @@ export type Document = {
   expiration_date: string | null;
   liability_limit: string | null;
   workers_comp_included: boolean | null;
+  additional_insured: boolean | null;
+  waiver_subrogation: boolean | null;
+  notes: string | null;
   confidence_score: number | null;
   status: DocumentStatus;
+  review_status: ReviewStatus;
   raw_ai_json: CoiExtraction | null;
   upload_token: string | null;
+  verified_by: string | null;
+  verified_at: string | null;
   created_at: string;
 };
 
@@ -91,18 +99,25 @@ export type VendorLatest = {
   expiration_date: string | null;
   liability_limit: string | null;
   workers_comp_included: boolean | null;
+  additional_insured: boolean | null;
+  waiver_subrogation: boolean | null;
+  notes: string | null;
   confidence_score: number | null;
   status: DocumentStatus | null;
+  review_status: ReviewStatus | null;
+  verified_at: string | null;
   document_created_at: string | null;
   preview_url?: string | null;
 };
 
 export type CoiExtraction = {
-  vendor_name: string;
-  policy_effective_date: string;
-  policy_expiration_date: string;
-  general_liability_limit: string;
-  workers_comp_included: boolean;
+  vendor_name: string | null;
+  policy_effective_date: string | null;
+  policy_expiration_date: string | null;
+  gl_occurrence_limit: string | null;
+  additional_insured_checked: boolean;
+  waiver_of_subrogation_checked: boolean;
+  workers_comp_present: boolean;
   confidence_score: number;
 };
 

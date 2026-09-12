@@ -58,54 +58,86 @@ export async function sendExpirationEmails(input: {
   }
 
   const uploadUrl = `${getAppUrl()}/upload/${input.uploadToken}`;
-  const dashboardUrl = `${getAppUrl()}/dashboard`;
-  const headline =
-    input.alertType === "expired"
-      ? `${input.vendorName}'s certificate expired today`
-      : `${input.vendorName}'s certificate expires in ${input.alertType} days`;
-
   const resend = getResend();
-
-  const contractorHtml = layout(
-    headline,
+  const subject = `Action Required: Update your Certificate of Insurance for ${input.contractorName}`;
+  const vendorHtml = layout(
+    input.alertType === "expired"
+      ? "Your certificate of insurance has expired"
+      : `Please renew your COI — ${input.alertType} days left`,
     `<p style="margin:0 0 12px;color:#3f3f46;line-height:1.6;">
-      ${input.vendorName}'s COI ${input.alertType === "expired" ? "expired" : "expires"} on
-      <strong>${input.expirationDate}</strong>. Ask them to upload a renewed ACORD 25.
+      ${input.contractorName} needs an updated certificate of insurance on file.
+      Current expiration: <strong>${input.expirationDate}</strong>.
     </p>
-    ${button(dashboardUrl, "Open dashboard")}`
+    ${button(uploadUrl, "Upload updated COI")}`
   );
+
+  if (input.vendorEmail) {
+    await resend.emails.send({
+      from: fromAddress(),
+      to: input.vendorEmail,
+      cc: input.contractorEmails.length > 0 ? input.contractorEmails : undefined,
+      subject,
+      html: vendorHtml,
+    });
+    return;
+  }
 
   if (input.contractorEmails.length > 0) {
     await resend.emails.send({
       from: fromAddress(),
       to: input.contractorEmails,
-      subject: headline,
-      html: contractorHtml,
-    });
-  }
-
-  if (input.vendorEmail) {
-    const vendorHtml = layout(
-      input.alertType === "expired"
-        ? "Your certificate of insurance has expired"
-        : `Please renew your COI — ${input.alertType} days left`,
-      `<p style="margin:0 0 12px;color:#3f3f46;line-height:1.6;">
-        ${input.contractorName} needs an updated certificate of insurance on file.
-        Current expiration: <strong>${input.expirationDate}</strong>.
-      </p>
-      ${button(uploadUrl, "Upload updated COI")}`
-    );
-
-    await resend.emails.send({
-      from: fromAddress(),
-      to: input.vendorEmail,
-      subject:
-        input.alertType === "expired"
-          ? `Action required: expired COI for ${input.contractorName}`
-          : `COI renewal needed (${input.alertType} days) — ${input.contractorName}`,
+      subject,
       html: vendorHtml,
     });
   }
+}
+
+export async function sendNewCoiReadyEmail(input: {
+  to: string[];
+  contractorName: string;
+  vendorName: string;
+  documentId: string;
+}) {
+  if (!isEmailConfigured() || input.to.length === 0) return;
+  const reviewUrl = `${getAppUrl()}/dashboard/review/${input.documentId}`;
+  await getResend().emails.send({
+    from: fromAddress(),
+    to: input.to,
+    subject: `New COI submitted by ${input.vendorName} ready for 1-click review`,
+    html: layout(
+      "New certificate ready for review",
+      `<p style="margin:0 0 12px;color:#3f3f46;line-height:1.6;">
+        ${input.vendorName} submitted a COI for ${input.contractorName}. Confirm the dates against the PDF before approving.
+      </p>
+      ${button(reviewUrl, "Review certificate")}`
+    ),
+  });
+}
+
+export async function sendRejectReuploadEmail(input: {
+  to: string;
+  cc?: string[];
+  contractorName: string;
+  vendorName: string;
+  token: string;
+  reason: string;
+}) {
+  if (!isEmailConfigured()) return;
+  const uploadUrl = `${getAppUrl()}/upload/${input.token}`;
+  await getResend().emails.send({
+    from: fromAddress(),
+    to: input.to,
+    cc: input.cc?.length ? input.cc : undefined,
+    subject: `Action Required: Update your Certificate of Insurance for ${input.contractorName}`,
+    html: layout(
+      "A new certificate is needed",
+      `<p style="margin:0 0 12px;color:#3f3f46;line-height:1.6;">
+        ${input.contractorName} could not approve the COI for ${input.vendorName}.
+      </p>
+      <p style="margin:0 0 12px;color:#3f3f46;line-height:1.6;">${input.reason}</p>
+      ${button(uploadUrl, "Upload updated COI")}`
+    ),
+  });
 }
 
 export async function sendInviteEmail(input: {
