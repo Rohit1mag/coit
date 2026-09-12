@@ -148,7 +148,6 @@ export function AuthForm({
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: { prompt: "select_account" },
-          data: mode === "signup" && orgName.trim() ? { org_name: orgName.trim() } : undefined,
         },
       });
       if (oauthError) throw oauthError;
