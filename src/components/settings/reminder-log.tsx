@@ -26,11 +26,9 @@ function vendorName(row: ReminderLogRow) {
   return vendorRow(row)?.name ?? "Unknown vendor";
 }
 
-function recipientsFor(row: ReminderLogRow, fallbackEmail: string) {
+function recipientsFor(row: ReminderLogRow) {
   if (row.recipients && row.recipients.length > 0) return row.recipients;
-  return [vendorRow(row)?.contact_email, fallbackEmail].filter(
-    (email): email is string => Boolean(email)
-  );
+  return [vendorRow(row)?.contact_email].filter((email): email is string => Boolean(email));
 }
 
 function reminderLabel(type: string) {
@@ -48,13 +46,7 @@ function formatWhen(row: ReminderLogRow) {
   }
 }
 
-export function ReminderLog({
-  rows,
-  fallbackEmail,
-}: {
-  rows: ReminderLogRow[];
-  fallbackEmail: string;
-}) {
+export function ReminderLog({ rows }: { rows: ReminderLogRow[] }) {
   return (
     <Card>
       <CardHeader>
@@ -78,8 +70,8 @@ export function ReminderLog({
               {rows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="py-10 text-center text-muted-foreground">
-                    No reminder emails yet. They go out on the daily check once a reminder email is
-                    saved and a certificate hits a reminder day.
+                    No reminder emails yet. They go out on the daily check when a certificate hits a
+                    reminder day and the sub has a contact email.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -91,7 +83,7 @@ export function ReminderLog({
                     <TableCell className="font-medium">{vendorName(row)}</TableCell>
                     <TableCell>{reminderLabel(row.alert_type)}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {recipientsFor(row, fallbackEmail).join(", ") || "—"}
+                      {recipientsFor(row).join(", ") || "—"}
                     </TableCell>
                   </TableRow>
                 ))

@@ -61,14 +61,8 @@ export default async function SettingsPage({
         status={session.org.lemon_squeezy_subscription_status}
         configured={isBillingConfigured()}
       />
-      <AlertCadenceForm
-        cadences={session.org.alert_cadences ?? [30, 14, 7]}
-        alertEmail={session.org.alert_email ?? session.email ?? ""}
-      />
-      <ReminderLog
-        rows={logRows}
-        fallbackEmail={session.org.alert_email ?? session.email ?? ""}
-      />
+      <AlertCadenceForm cadences={session.org.alert_cadences ?? [30, 14, 7]} />
+      <ReminderLog rows={logRows} />
     </div>
   );
 }

@@ -42,46 +42,18 @@ export async function GET(request: Request) {
     .gt("expiration_date", utcDateOffset(30))
     .neq("status", "valid");
 
-  let { data: orgs, error: orgError } = await admin
+  const { data: orgs, error: orgError } = await admin
     .from("organizations")
-    .select("id, name, alert_cadences, alert_email");
-  if (orgError) {
-    ({ data: orgs, error: orgError } = await admin
-      .from("organizations")
-      .select("id, name, alert_cadences"));
-  }
+    .select("id, name, alert_cadences");
 
   if (orgError) {
     return NextResponse.json({ error: orgError.message }, { status: 500 });
   }
 
   let sent = 0;
-  let skippedNoInbox = 0;
   const failures: string[] = [];
 
-  for (const org of (orgs ?? []) as Pick<
-    Organization,
-    "id" | "name" | "alert_cadences" | "alert_email"
-  >[]) {
-    const { data: owners } = await admin
-      .from("users")
-      .select("email")
-      .eq("org_id", org.id)
-      .in("role", ["owner", "admin"]);
-
-    const contractorEmails = [
-      ...new Set(
-        [org.alert_email, ...(owners ?? []).map((user) => user.email)]
-          .map((email) => email?.trim())
-          .filter((email): email is string => Boolean(email))
-      ),
-    ];
-
-    if (contractorEmails.length === 0) {
-      skippedNoInbox += 1;
-      continue;
-    }
-
+  for (const org of (orgs ?? []) as Pick<Organization, "id" | "name" | "alert_cadences">[]) {
     const cadences = org.alert_cadences?.length ? org.alert_cadences : [30, 14, 7];
     const targetDates = new Set<string>([today, ...cadences.map((days) => utcDateOffset(days))]);
 
@@ -93,7 +65,7 @@ export async function GET(request: Request) {
       .in("expiration_date", [...targetDates]);
 
     for (const row of (rows ?? []) as VendorLatest[]) {
-      if (!row.expiration_date || !row.document_id) continue;
+      if (!row.expiration_date || !row.document_id || !row.contact_email) continue;
 
       const days = cadences.find((day) => utcDateOffset(day) === row.expiration_date);
       const alertType = row.expiration_date === today ? "expired" : String(days ?? "soon");
@@ -122,9 +94,7 @@ export async function GET(request: Request) {
         });
 
         const recipients = await sendExpirationEmails({
-          contractorEmails,
           contractorName: org.name,
-          vendorName: row.name,
           vendorEmail: row.contact_email,
           expirationDate: row.expiration_date,
           alertType,
@@ -148,5 +118,5 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true, sent, skippedNoInbox, failures });
+  return NextResponse.json({ ok: true, sent, failures });
 }

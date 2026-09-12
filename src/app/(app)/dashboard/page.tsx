@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { InviteDialog } from "@/components/dashboard/invite-dialog";
 import { MetricCards } from "@/components/dashboard/metric-cards";
 import { UploadCoiDialog } from "@/components/dashboard/upload-coi-dialog";
@@ -35,7 +34,6 @@ export default async function DashboardPage() {
     (row) => row.review_status === "approved" && row.status === "expired",
   ).length;
   const missingVendorEmail = vendors.filter((row) => !row.contact_email).length;
-  const reminderEmail = session.org.alert_email?.trim();
 
   return (
     <div className="space-y-8">
@@ -54,23 +52,6 @@ export default async function DashboardPage() {
         ) : null}
       </div>
 
-      {!reminderEmail && !session.email ? (
-        <Alert>
-          <AlertTitle>Reminder email required</AlertTitle>
-          <AlertDescription>
-            Expiration emails will not send until you add a reminder inbox in{" "}
-            <Link href="/settings">Settings</Link>.
-          </AlertDescription>
-        </Alert>
-      ) : !reminderEmail ? (
-        <Alert>
-          <AlertTitle>Confirm your reminder email</AlertTitle>
-          <AlertDescription>
-            Save a reminder inbox in <Link href="/settings">Settings</Link> so expiration emails
-            have a destination. Subcontractors also need a contact email.
-          </AlertDescription>
-        </Alert>
-      ) : null}
       {missingVendorEmail > 0 ? (
         <Alert>
           <AlertTitle>

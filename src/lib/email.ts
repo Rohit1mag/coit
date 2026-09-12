@@ -44,9 +44,7 @@ function button(href: string, label: string) {
 }
 
 export async function sendExpirationEmails(input: {
-  contractorEmails: string[];
   contractorName: string;
-  vendorName: string;
   vendorEmail: string | null;
   expirationDate: string;
   alertType: string;
@@ -57,8 +55,10 @@ export async function sendExpirationEmails(input: {
     return [];
   }
 
+  const vendorEmail = input.vendorEmail?.trim();
+  if (!vendorEmail) return [];
+
   const uploadUrl = `${getAppUrl()}/upload/${input.uploadToken}`;
-  const resend = getResend();
   const subject = `Action Required: Update your Certificate of Insurance for ${input.contractorName}`;
   const vendorHtml = layout(
     input.alertType === "expired"
@@ -71,38 +71,17 @@ export async function sendExpirationEmails(input: {
     ${button(uploadUrl, "Upload updated COI")}`
   );
 
-  const recipients = [
-    ...new Set(
-      [input.vendorEmail, ...input.contractorEmails]
-        .map((email) => email?.trim())
-        .filter((email): email is string => Boolean(email))
-    ),
-  ];
-  if (recipients.length === 0) return [];
-
-  if (input.vendorEmail) {
-    await resend.emails.send({
-      from: fromAddress(),
-      to: input.vendorEmail,
-      cc: input.contractorEmails.length > 0 ? input.contractorEmails : undefined,
-      subject,
-      html: vendorHtml,
-    });
-    return recipients;
-  }
-
-  await resend.emails.send({
+  await getResend().emails.send({
     from: fromAddress(),
-    to: input.contractorEmails,
+    to: vendorEmail,
     subject,
     html: vendorHtml,
   });
-  return recipients;
+  return [vendorEmail];
 }
 
 export async function sendRejectReuploadEmail(input: {
   to: string;
-  cc?: string[];
   contractorName: string;
   vendorName: string;
   token: string;
@@ -113,7 +92,6 @@ export async function sendRejectReuploadEmail(input: {
   await getResend().emails.send({
     from: fromAddress(),
     to: input.to,
-    cc: input.cc?.length ? input.cc : undefined,
     subject: `Action Required: Update your Certificate of Insurance for ${input.contractorName}`,
     html: layout(
       "A new certificate is needed",
