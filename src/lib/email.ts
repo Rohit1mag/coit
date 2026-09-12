@@ -51,10 +51,10 @@ export async function sendExpirationEmails(input: {
   expirationDate: string;
   alertType: string;
   uploadToken: string;
-}) {
+}): Promise<string[]> {
   if (!isEmailConfigured()) {
     console.warn("Email skipped — RESEND_API_KEY or EMAIL_FROM is not set");
-    return;
+    return [];
   }
 
   const uploadUrl = `${getAppUrl()}/upload/${input.uploadToken}`;
@@ -71,6 +71,15 @@ export async function sendExpirationEmails(input: {
     ${button(uploadUrl, "Upload updated COI")}`
   );
 
+  const recipients = [
+    ...new Set(
+      [input.vendorEmail, ...input.contractorEmails]
+        .map((email) => email?.trim())
+        .filter((email): email is string => Boolean(email))
+    ),
+  ];
+  if (recipients.length === 0) return [];
+
   if (input.vendorEmail) {
     await resend.emails.send({
       from: fromAddress(),
@@ -79,39 +88,16 @@ export async function sendExpirationEmails(input: {
       subject,
       html: vendorHtml,
     });
-    return;
+    return recipients;
   }
 
-  if (input.contractorEmails.length > 0) {
-    await resend.emails.send({
-      from: fromAddress(),
-      to: input.contractorEmails,
-      subject,
-      html: vendorHtml,
-    });
-  }
-}
-
-export async function sendNewCoiReadyEmail(input: {
-  to: string[];
-  contractorName: string;
-  vendorName: string;
-  documentId: string;
-}) {
-  if (!isEmailConfigured() || input.to.length === 0) return;
-  const reviewUrl = `${getAppUrl()}/dashboard/review/${input.documentId}`;
-  await getResend().emails.send({
+  await resend.emails.send({
     from: fromAddress(),
-    to: input.to,
-    subject: `New COI submitted by ${input.vendorName} ready for 1-click review`,
-    html: layout(
-      "New certificate ready for review",
-      `<p style="margin:0 0 12px;color:#3f3f46;line-height:1.6;">
-        ${input.vendorName} submitted a COI for ${input.contractorName}. Confirm the dates against the PDF before approving.
-      </p>
-      ${button(reviewUrl, "Review certificate")}`
-    ),
+    to: input.contractorEmails,
+    subject,
+    html: vendorHtml,
   });
+  return recipients;
 }
 
 export async function sendRejectReuploadEmail(input: {

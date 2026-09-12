@@ -162,7 +162,9 @@ export function VendorTable({ vendors }: { vendors: VendorLatest[] }) {
                 <TableRow key={vendor.vendor_id}>
                   <TableCell className="font-medium">{vendor.name}</TableCell>
                   <TableCell className="text-muted-foreground">
-                    {vendor.contact_email ?? "—"}
+                    {vendor.contact_email ?? (
+                      <span className="text-destructive">Missing — sub won&apos;t get reminders</span>
+                    )}
                   </TableCell>
                   <TableCell>{vendor.trade ?? "—"}</TableCell>
                   <TableCell className="font-mono text-sm">

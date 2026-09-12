@@ -136,6 +136,9 @@ export function InviteDialog({ disabled }: { disabled?: boolean }) {
                   value={contactEmail}
                   onChange={(event) => setContactEmail(event.target.value)}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Required so expiration reminders can be emailed to this sub.
+                </p>
               </div>
               <div className="grid gap-1.5">
                 <Label htmlFor="invite-trade">Trade</Label>

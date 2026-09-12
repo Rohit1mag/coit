@@ -2,7 +2,6 @@ import { generateText, Output } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
-import { sendNewCoiReadyEmail } from "@/lib/email";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { deriveStatus, STORAGE_BUCKET } from "@/lib/coi";
 import type { CoiExtraction } from "@/types/database";
@@ -217,26 +216,6 @@ export async function upsertVendorAndDocument(input: {
 
   if (docError || !document) {
     throw new Error(docError?.message ?? "Failed to save document");
-  }
-
-  if (input.uploadToken) {
-    try {
-      const [{ data: org }, { data: owners }] = await Promise.all([
-        admin.from("organizations").select("name").eq("id", input.orgId).maybeSingle(),
-        admin.from("users").select("email").eq("org_id", input.orgId).in("role", ["owner", "admin"]),
-      ]);
-      const emails = (owners ?? []).map((user) => user.email).filter(Boolean);
-      if (emails.length > 0) {
-        await sendNewCoiReadyEmail({
-          to: emails,
-          contractorName: org?.name ?? "your workspace",
-          vendorName: name,
-          documentId: document.id,
-        });
-      }
-    } catch (error) {
-      console.warn("New COI notification failed", error);
-    }
   }
 
   return { vendorId, document };

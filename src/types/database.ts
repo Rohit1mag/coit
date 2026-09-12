@@ -29,7 +29,19 @@ export type Organization = {
   lemon_squeezy_subscription_id: string | null;
   lemon_squeezy_subscription_status: SubscriptionStatus;
   alert_cadences: number[];
+  alert_email: string | null;
   created_at: string;
+};
+
+export type AlertSend = {
+  id: string;
+  org_id: string;
+  vendor_id: string;
+  document_id: string | null;
+  alert_type: string;
+  sent_on: string;
+  sent_at: string;
+  recipients: string[];
 };
 
 export type Profile = {

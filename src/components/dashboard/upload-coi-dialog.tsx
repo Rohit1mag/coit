@@ -117,12 +117,13 @@ export function UploadCoiDialog({
           Upload COI
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <form onSubmit={onSubmit} className="grid gap-4">
+      <DialogContent className="sm:max-w-lg">
+        <form onSubmit={onSubmit} className="grid gap-5">
           <DialogHeader>
             <DialogTitle>Upload certificate</DialogTitle>
             <DialogDescription>
-              Drop an ACORD 25 PDF or photo. We extract dates, limits, and vendor name automatically.
+              Drop an ACORD 25 PDF or photo. We extract dates, limits, and vendor name
+              automatically.
             </DialogDescription>
           </DialogHeader>
 
@@ -137,13 +138,15 @@ export function UploadCoiDialog({
               setDragging(false);
               onFile(event.dataTransfer.files[0] ?? null);
             }}
-            className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed px-4 py-10 text-center text-sm ${
+            className={`flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed px-4 py-8 text-center text-sm ${
               dragging ? "border-foreground bg-muted" : "border-border"
             }`}
           >
             <Upload className="mb-2 size-5 text-muted-foreground" />
             <span className="font-medium">{file ? file.name : "Drop PDF or image here"}</span>
-            <span className="mt-1 text-muted-foreground">or click to browse · PDF, JPG, PNG · 20MB max</span>
+            <span className="mt-1 text-muted-foreground">
+              or click to browse · PDF, JPG, PNG · 20MB max
+            </span>
             <input
               type="file"
               accept={ACCEPT}
@@ -152,7 +155,7 @@ export function UploadCoiDialog({
             />
           </label>
 
-          <div className="grid gap-3">
+          <div className="grid gap-4">
             {vendors.length > 0 ? (
               <div className="grid gap-1.5">
                 <Label htmlFor="existing-vendor">Existing vendor</Label>
@@ -190,25 +193,28 @@ export function UploadCoiDialog({
                 placeholder="Optional — AI fills this in"
               />
             </div>
-            <div className="grid gap-1.5 sm:grid-cols-2 sm:gap-3">
-              <div className="grid gap-1.5">
-                <Label htmlFor="vendor-email">Contact email</Label>
-                <Input
-                  id="vendor-email"
-                  type="email"
-                  value={contactEmail}
-                  onChange={(event) => setContactEmail(event.target.value)}
-                />
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="vendor-trade">Trade</Label>
-                <Input
-                  id="vendor-trade"
-                  value={trade}
-                  onChange={(event) => setTrade(event.target.value)}
-                  placeholder="Electrical, roofing…"
-                />
-              </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="vendor-email">Contact email</Label>
+              <Input
+                id="vendor-email"
+                type="email"
+                required
+                value={contactEmail}
+                onChange={(event) => setContactEmail(event.target.value)}
+                placeholder="sub@contractor.com"
+              />
+              <p className="text-xs text-muted-foreground">
+                Required for expiration reminders.
+              </p>
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="vendor-trade">Trade</Label>
+              <Input
+                id="vendor-trade"
+                value={trade}
+                onChange={(event) => setTrade(event.target.value)}
+                placeholder="Electrical, roofing…"
+              />
             </div>
           </div>
 

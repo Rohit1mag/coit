@@ -42,18 +42,46 @@ export async function GET(request: Request) {
     .gt("expiration_date", utcDateOffset(30))
     .neq("status", "valid");
 
-  const { data: orgs, error: orgError } = await admin
+  let { data: orgs, error: orgError } = await admin
     .from("organizations")
-    .select("id, name, alert_cadences");
+    .select("id, name, alert_cadences, alert_email");
+  if (orgError) {
+    ({ data: orgs, error: orgError } = await admin
+      .from("organizations")
+      .select("id, name, alert_cadences"));
+  }
 
   if (orgError) {
     return NextResponse.json({ error: orgError.message }, { status: 500 });
   }
 
   let sent = 0;
+  let skippedNoInbox = 0;
   const failures: string[] = [];
 
-  for (const org of (orgs ?? []) as Pick<Organization, "id" | "name" | "alert_cadences">[]) {
+  for (const org of (orgs ?? []) as Pick<
+    Organization,
+    "id" | "name" | "alert_cadences" | "alert_email"
+  >[]) {
+    const { data: owners } = await admin
+      .from("users")
+      .select("email")
+      .eq("org_id", org.id)
+      .in("role", ["owner", "admin"]);
+
+    const contractorEmails = [
+      ...new Set(
+        [org.alert_email, ...(owners ?? []).map((user) => user.email)]
+          .map((email) => email?.trim())
+          .filter((email): email is string => Boolean(email))
+      ),
+    ];
+
+    if (contractorEmails.length === 0) {
+      skippedNoInbox += 1;
+      continue;
+    }
+
     const cadences = org.alert_cadences?.length ? org.alert_cadences : [30, 14, 7];
     const targetDates = new Set<string>([today, ...cadences.map((days) => utcDateOffset(days))]);
 
@@ -64,29 +92,25 @@ export async function GET(request: Request) {
       .eq("review_status", "approved")
       .in("expiration_date", [...targetDates]);
 
-    const { data: owners } = await admin
-      .from("users")
-      .select("email")
-      .eq("org_id", org.id)
-      .in("role", ["owner", "admin"]);
-
-    const contractorEmails = (owners ?? []).map((user) => user.email).filter(Boolean);
-
     for (const row of (rows ?? []) as VendorLatest[]) {
       if (!row.expiration_date || !row.document_id) continue;
 
       const days = cadences.find((day) => utcDateOffset(day) === row.expiration_date);
       const alertType = row.expiration_date === today ? "expired" : String(days ?? "soon");
 
-      const { error: insertError } = await admin.from("alert_sends").insert({
-        org_id: org.id,
-        vendor_id: row.vendor_id,
-        document_id: row.document_id,
-        alert_type: alertType,
-        sent_on: today,
-      });
+      const { data: locked, error: insertError } = await admin
+        .from("alert_sends")
+        .insert({
+          org_id: org.id,
+          vendor_id: row.vendor_id,
+          document_id: row.document_id,
+          alert_type: alertType,
+          sent_on: today,
+        })
+        .select("id")
+        .single();
 
-      if (insertError) continue;
+      if (insertError || !locked) continue;
 
       try {
         const token = await ensureVendorInviteToken({
@@ -97,7 +121,7 @@ export async function GET(request: Request) {
           trade: row.trade,
         });
 
-        await sendExpirationEmails({
+        const recipients = await sendExpirationEmails({
           contractorEmails,
           contractorName: org.name,
           vendorName: row.name,
@@ -106,12 +130,23 @@ export async function GET(request: Request) {
           alertType,
           uploadToken: token,
         });
+
+        if (recipients.length === 0) {
+          await admin.from("alert_sends").delete().eq("id", locked.id);
+          continue;
+        }
+
+        await admin
+          .from("alert_sends")
+          .update({ recipients, sent_at: new Date().toISOString() })
+          .eq("id", locked.id);
         sent += 1;
       } catch (error) {
+        await admin.from("alert_sends").delete().eq("id", locked.id);
         failures.push(error instanceof Error ? error.message : "send failed");
       }
     }
   }
 
-  return NextResponse.json({ ok: true, sent, failures });
+  return NextResponse.json({ ok: true, sent, skippedNoInbox, failures });
 }

@@ -1,9 +1,32 @@
 import { AlertCadenceForm } from "@/components/settings/alert-cadence-form";
 import { BillingCard } from "@/components/settings/billing-card";
+import { ReminderLog, type ReminderLogRow } from "@/components/settings/reminder-log";
 import { requireSession } from "@/lib/auth";
 import { isBillingConfigured } from "@/lib/env";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata = { title: "Settings" };
+
+async function loadReminderLog(orgId: string): Promise<ReminderLogRow[]> {
+  const admin = createAdminClient();
+  const withRecipients = await admin
+    .from("alert_sends")
+    .select("id, alert_type, sent_on, sent_at, recipients, vendors(name, contact_email)")
+    .eq("org_id", orgId)
+    .order("sent_on", { ascending: false })
+    .limit(50);
+
+  const result = withRecipients.error
+    ? await admin
+        .from("alert_sends")
+        .select("id, alert_type, sent_on, vendors(name, contact_email)")
+        .eq("org_id", orgId)
+        .order("sent_on", { ascending: false })
+        .limit(50)
+    : withRecipients;
+
+  return (result.data ?? []) as ReminderLogRow[];
+}
 
 export default async function SettingsPage({
   searchParams,
@@ -12,6 +35,7 @@ export default async function SettingsPage({
 }) {
   const session = await requireSession();
   const params = await searchParams;
+  const logRows = await loadReminderLog(session.org.id);
 
   return (
     <div className="space-y-8">
@@ -37,7 +61,14 @@ export default async function SettingsPage({
         status={session.org.lemon_squeezy_subscription_status}
         configured={isBillingConfigured()}
       />
-      <AlertCadenceForm cadences={session.org.alert_cadences ?? [30, 14, 7]} />
+      <AlertCadenceForm
+        cadences={session.org.alert_cadences ?? [30, 14, 7]}
+        alertEmail={session.org.alert_email ?? session.email ?? ""}
+      />
+      <ReminderLog
+        rows={logRows}
+        fallbackEmail={session.org.alert_email ?? session.email ?? ""}
+      />
     </div>
   );
 }

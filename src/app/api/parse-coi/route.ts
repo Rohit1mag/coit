@@ -11,7 +11,7 @@ const bodySchema = z.object({
   vendor_id: z.string().uuid().optional().nullable(),
   vendor_name: z.string().optional().nullable(),
   contact_name: z.string().optional().nullable(),
-  contact_email: z.string().email().optional().nullable().or(z.literal("")),
+  contact_email: z.string().email(),
   trade: z.string().optional().nullable(),
 });
 
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       vendorId: body.vendor_id,
       vendorName: body.vendor_name,
       contactName: body.contact_name,
-      contactEmail: body.contact_email || null,
+      contactEmail: body.contact_email,
       trade: body.trade,
     });
 

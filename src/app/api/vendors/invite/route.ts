@@ -55,7 +55,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: inviteError.message }, { status: 400 });
     }
 
-    if (body.send_email !== false) {
+    const gcEmails = new Set(
+      [session.email, session.org.alert_email]
+        .map((email) => email?.trim().toLowerCase())
+        .filter(Boolean)
+    );
+    const shouldEmailSub =
+      body.send_email !== false && !gcEmails.has(body.contact_email.trim().toLowerCase());
+
+    if (shouldEmailSub) {
       await sendInviteEmail({
         to: body.contact_email,
         contractorName: session.org.name,

@@ -38,6 +38,11 @@ export async function getSessionContext(): Promise<SessionContext | null> {
     };
   }
 
+  if (!organization.alert_email && email) {
+    await supabase.from("organizations").update({ alert_email: email }).eq("id", organization.id);
+    organization = { ...organization, alert_email: email };
+  }
+
   const profileRow = profile as Profile & {
     organizations: Organization | Organization[];
   };

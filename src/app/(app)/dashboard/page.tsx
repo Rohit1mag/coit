@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { InviteDialog } from "@/components/dashboard/invite-dialog";
 import { MetricCards } from "@/components/dashboard/metric-cards";
 import { UploadCoiDialog } from "@/components/dashboard/upload-coi-dialog";
 import { VendorTable } from "@/components/dashboard/vendor-table";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { requireSession } from "@/lib/auth";
 import { withPreviewUrls } from "@/lib/documents";
 import { createClient } from "@/lib/supabase/server";
@@ -32,6 +34,8 @@ export default async function DashboardPage() {
   const expired = vendors.filter(
     (row) => row.review_status === "approved" && row.status === "expired",
   ).length;
+  const missingVendorEmail = vendors.filter((row) => !row.contact_email).length;
+  const reminderEmail = session.org.alert_email?.trim();
 
   return (
     <div className="space-y-8">
@@ -49,6 +53,36 @@ export default async function DashboardPage() {
           </div>
         ) : null}
       </div>
+
+      {!reminderEmail && !session.email ? (
+        <Alert>
+          <AlertTitle>Reminder email required</AlertTitle>
+          <AlertDescription>
+            Expiration emails will not send until you add a reminder inbox in{" "}
+            <Link href="/settings">Settings</Link>.
+          </AlertDescription>
+        </Alert>
+      ) : !reminderEmail ? (
+        <Alert>
+          <AlertTitle>Confirm your reminder email</AlertTitle>
+          <AlertDescription>
+            Save a reminder inbox in <Link href="/settings">Settings</Link> so expiration emails
+            have a destination. Subcontractors also need a contact email.
+          </AlertDescription>
+        </Alert>
+      ) : null}
+      {missingVendorEmail > 0 ? (
+        <Alert>
+          <AlertTitle>
+            {missingVendorEmail === 1
+              ? "1 subcontractor has no contact email"
+              : `${missingVendorEmail} subcontractors have no contact email`}
+          </AlertTitle>
+          <AlertDescription>
+            They will not receive reminder emails. Add a contact email when you invite or upload.
+          </AlertDescription>
+        </Alert>
+      ) : null}
 
       {vendors.length === 0 ? (
         <div className="rounded-2xl border bg-card px-6 py-16 text-center shadow-sm">
