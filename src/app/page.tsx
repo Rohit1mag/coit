@@ -1,69 +1,143 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Bell, FileSearch, Link2, ShieldCheck } from "lucide-react";
+import { MarketingShell } from "@/components/marketing/marketing-shell";
+import { ProductPreview } from "@/components/marketing/product-preview";
+import { Button } from "@/components/ui/button";
 
-export default function Home() {
+const steps = [
+  {
+    title: "Collect the ACORD 25",
+    body: "Upload one you already have, or send the sub a link. They submit from their phone. No login.",
+    icon: Link2,
+  },
+  {
+    title: "We read the coverage",
+    body: "Vendor name, expiration, GL limit, and workers’ comp come off the certificate. You see Valid, Expiring, or Expired.",
+    icon: FileSearch,
+  },
+  {
+    title: "Reminders go out automatically",
+    body: "You and the sub get email at 30, 14, and 3 days — and the day it lapses — with a one-click upload.",
+    icon: Bell,
+  },
+];
+
+const included = [
+  "Unlimited subcontractors",
+  "AI extraction from ACORD 25 PDFs and photos",
+  "Public upload links (no vendor account)",
+  "Email reminders to you and the sub",
+  "Adjustable alert cadence",
+  "Cancel anytime during or after the trial",
+];
+
+export default function LandingPage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <MarketingShell>
+      <section className="mx-auto max-w-6xl px-4 pb-16 pt-14 sm:pb-24 sm:pt-20">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="mb-4 inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
+            <ShieldCheck className="size-3.5" />
+            Built for GCs and property managers
           </p>
+          <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
+            Know which subs are uncovered before the job starts.
+          </h1>
+          <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground text-pretty">
+            COI Tracker collects certificates, reads the expiration date, and emails the sub a new
+            upload link before you&apos;re the one exposed.
+          </p>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Button size="lg" className="h-11 px-5" asChild>
+              <Link href="/signup">Start 14-day trial</Link>
+            </Button>
+            <Button size="lg" variant="outline" className="h-11 px-5" asChild>
+              <Link href="/login">Sign in</Link>
+            </Button>
+          </div>
+          <p className="mt-3 text-sm text-muted-foreground">$99/month after trial. No setup call.</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="mx-auto mt-14 max-w-4xl">
+          <ProductPreview />
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section className="border-y bg-card">
+        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-3 sm:py-14">
+          {[
+            { title: "Stop chasing PDFs", body: "One board for every sub. No shared drive, no inbox search." },
+            { title: "See risk in a glance", body: "Expired and expiring certificates sit at the top of the list." },
+            { title: "The sub does the work", body: "They get a link, take a photo, and you get the date on file." },
+          ].map((item) => (
+            <div key={item.title}>
+              <h2 className="font-medium">{item.title}</h2>
+              <p className="mt-2 text-sm text-muted-foreground">{item.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section id="how-it-works" className="mx-auto max-w-6xl px-4 py-20">
+        <div className="max-w-xl">
+          <p className="text-sm font-medium text-muted-foreground">How it works</p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-tight">Three steps. Then it watches itself.</h2>
+        </div>
+        <ol className="mt-10 grid gap-6 sm:grid-cols-3">
+          {steps.map((step, index) => {
+            const Icon = step.icon;
+            return (
+              <li key={step.title} className="rounded-2xl border bg-card p-5">
+                <p className="font-mono text-xs text-muted-foreground">{String(index + 1).padStart(2, "0")}</p>
+                <Icon className="mt-4 size-5" />
+                <h3 className="mt-3 font-medium">{step.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{step.body}</p>
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+
+      <section id="pricing" className="border-t bg-card">
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 lg:grid-cols-[1fr_24rem]">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">Pricing</p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight">One plan. Built for a small office.</h2>
+            <p className="mt-4 max-w-xl text-muted-foreground">
+              Most shops don&apos;t need a compliance suite. They need to know who is expired before
+              someone walks on site.
+            </p>
+          </div>
+          <div className="rounded-2xl border bg-background p-6 shadow-sm">
+            <p className="text-sm text-muted-foreground">COI Tracker</p>
+            <p className="mt-2 flex items-baseline gap-1">
+              <span className="text-4xl font-semibold tracking-tight">$99</span>
+              <span className="text-muted-foreground">/month</span>
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">14-day free trial. Cancel anytime.</p>
+            <ul className="mt-6 space-y-2.5 text-sm">
+              {included.map((item) => (
+                <li key={item} className="flex gap-2">
+                  <ShieldCheck className="mt-0.5 size-4 shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <Button className="mt-6 h-11 w-full" asChild>
+              <Link href="/signup">Start free trial</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 py-20 text-center">
+        <h2 className="text-3xl font-semibold tracking-tight">Ready to stop guessing on coverage?</h2>
+        <p className="mx-auto mt-3 max-w-lg text-muted-foreground">
+          Create a workspace, add one certificate, and see who is actually covered.
+        </p>
+        <Button size="lg" className="mt-8 h-11 px-5" asChild>
+          <Link href="/signup">Get started</Link>
+        </Button>
+      </section>
+    </MarketingShell>
   );
 }
