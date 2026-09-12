@@ -1,4 +1,10 @@
-import { createCheckout, getCustomer, getSubscription, lemonSqueezySetup } from "@lemonsqueezy/lemonsqueezy.js";
+import {
+  createCheckout,
+  getCustomer,
+  getSubscription,
+  lemonSqueezySetup,
+  listStores,
+} from "@lemonsqueezy/lemonsqueezy.js";
 
 export function configureLemonSqueezy() {
   const apiKey = process.env.LEMONSQUEEZY_API_KEY;
@@ -6,10 +12,23 @@ export function configureLemonSqueezy() {
   lemonSqueezySetup({ apiKey });
 }
 
-export function requireStoreId() {
+export async function resolveStoreId() {
   const storeId = process.env.LEMONSQUEEZY_STORE_ID;
   if (!storeId) throw new Error("LEMONSQUEEZY_STORE_ID is not set");
-  return storeId;
+  if (/^\d+$/.test(storeId)) return storeId;
+
+  configureLemonSqueezy();
+  const stores = await listStores();
+  if (stores.error) throw new Error(stores.error.message);
+  const match = stores.data?.data.find(
+    (store) => store.attributes.slug === storeId || store.attributes.name === storeId
+  );
+  if (!match) {
+    throw new Error(
+      `No Lemon Squeezy store matches "${storeId}". Use the numeric store ID from Settings.`
+    );
+  }
+  return match.id;
 }
 
 export function requireVariantId() {
@@ -26,9 +45,9 @@ export async function createSubscriptionCheckout(input: {
 }) {
   configureLemonSqueezy();
   const variantId = requireVariantId();
-  const checkout = await createCheckout(requireStoreId(), variantId, {
+  const checkout = await createCheckout(await resolveStoreId(), variantId, {
     checkoutOptions: {
-      embed: false,
+      embed: true,
       media: false,
     },
     checkoutData: {
@@ -39,7 +58,6 @@ export async function createSubscriptionCheckout(input: {
       },
     },
     productOptions: {
-      enabledVariants: [variantId],
       redirectUrl: input.redirectUrl,
       receiptButtonText: "Open dashboard",
       receiptThankYouNote: "Your SubCertify trial is starting.",
@@ -47,7 +65,12 @@ export async function createSubscriptionCheckout(input: {
   });
 
   if (checkout.error) {
-    throw new Error(checkout.error.message);
+    const detail = checkout.error.message;
+    throw new Error(
+      detail === "Not Found"
+        ? "Lemon Squeezy store or variant was not found. Use the numeric store ID from Settings, not the store slug."
+        : detail
+    );
   }
 
   const url = checkout.data?.data.attributes.url;

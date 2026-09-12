@@ -9,7 +9,7 @@ Next.js App Router · Supabase · Lemon Squeezy ($99/mo, 14-day trial) · Resend
 1. Create a Supabase project. Run the SQL files in `supabase/migrations/` in order. If you already applied the original Stripe columns, run `20260911000000_lemonsqueezy.sql`. Existing workspaces also need `20260912000000_review_workflow.sql`.
 2. In Authentication, enable Email (password + magic link). Add `http://localhost:3000/auth/callback` to redirect URLs.
 3. Copy `.env.example` to `.env.local` and fill in keys.
-4. In Lemon Squeezy, create a **SubCertify** subscription product at $99/month with a 14-day trial. Paste the store id and variant id into `LEMONSQUEEZY_STORE_ID` and `LEMONSQUEEZY_VARIANT_ID`.
+4. In Lemon Squeezy, create a **SubCertify** subscription product at $99/month with a 14-day trial. Paste the **numeric** store id (Settings → Stores, not the slug) and variant id into `LEMONSQUEEZY_STORE_ID` and `LEMONSQUEEZY_VARIANT_ID`.
 5. Point a Lemon Squeezy webhook at `/api/lemonsqueezy/webhook` and subscribe to:
    - `subscription_created`
    - `subscription_updated`

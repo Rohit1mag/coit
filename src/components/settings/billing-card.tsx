@@ -1,12 +1,39 @@
 "use client";
 
 import { useState } from "react";
+import Script from "next/script";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { isPaidStatus } from "@/lib/coi";
+
+declare global {
+  interface Window {
+    createLemonSqueezy?: () => void;
+    LemonSqueezy?: {
+      Setup: (options: { eventHandler: (event: { event: string }) => void }) => void;
+      Url: { Open: (url: string) => void };
+    };
+  }
+}
+
+function openLemonUrl(url: string) {
+  window.createLemonSqueezy?.();
+  window.LemonSqueezy?.Setup({
+    eventHandler: (event) => {
+      if (event.event === "Checkout.Success") {
+        window.location.href = "/settings?checkout=success";
+      }
+    },
+  });
+  if (window.LemonSqueezy?.Url.Open) {
+    window.LemonSqueezy.Url.Open(url);
+    return;
+  }
+  window.location.href = url;
+}
 
 export function BillingCard({
   status,
@@ -29,15 +56,17 @@ export function BillingCard({
       if (!response.ok || !payload.url) {
         throw new Error(payload.error ?? "Lemon Squeezy request failed");
       }
-      window.location.href = payload.url;
+      openLemonUrl(payload.url);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Billing request failed");
+    } finally {
       setBusy(null);
     }
   }
 
   return (
     <Card>
+      <Script src="https://app.lemonsqueezy.com/js/lemon.js" strategy="afterInteractive" />
       <CardHeader>
         <div className="flex items-center justify-between gap-3">
           <CardTitle>Billing</CardTitle>
