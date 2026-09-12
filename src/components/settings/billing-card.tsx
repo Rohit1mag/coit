@@ -66,19 +66,26 @@ export function BillingCard({
 
   return (
     <Card>
-      <Script src="https://app.lemonsqueezy.com/js/lemon.js" strategy="afterInteractive" />
+      {status !== "complimentary" ? (
+        <Script src="https://app.lemonsqueezy.com/js/lemon.js" strategy="afterInteractive" />
+      ) : null}
       <CardHeader>
         <div className="flex items-center justify-between gap-3">
           <CardTitle>Billing</CardTitle>
-          <Badge variant={subscribed ? "secondary" : "outline"}>{status}</Badge>
+          <Badge variant={subscribed ? "secondary" : "outline"}>
+            {status === "complimentary" ? "Unlimited trial" : status}
+          </Badge>
         </div>
         <CardDescription>
-          $99/month, 14-day trial. The product works either way — this is just how you pay. Lemon
-          Squeezy handles tax.
+          {status === "complimentary"
+            ? "This workspace has an unlimited complimentary trial. No payment is required."
+            : "$99/month, 14-day trial. The product works either way — this is just how you pay. Lemon Squeezy handles tax."}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-wrap gap-2">
-        {!configured ? (
+        {status === "complimentary" ? (
+          <p className="text-sm text-muted-foreground">All product features are included at no charge.</p>
+        ) : !configured ? (
           <p className="text-sm text-muted-foreground">
             Lemon Squeezy is not configured. Add LEMONSQUEEZY_API_KEY, LEMONSQUEEZY_STORE_ID, and
             LEMONSQUEEZY_VARIANT_ID.

@@ -11,6 +11,7 @@ export type ReviewStatus = "pending_review" | "approved" | "rejected";
 
 export type SubscriptionStatus =
   | "none"
+  | "complimentary"
   | "on_trial"
   | "trialing"
   | "active"

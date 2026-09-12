@@ -62,7 +62,12 @@ export function confidencePercent(score: number | null | undefined) {
 }
 
 export function isPaidStatus(status: string | null | undefined) {
-  return status === "active" || status === "on_trial" || status === "trialing";
+  return (
+    status === "active" ||
+    status === "on_trial" ||
+    status === "trialing" ||
+    status === "complimentary"
+  );
 }
 
 export function randomToken(bytes = 18) {

@@ -1,10 +1,20 @@
 import { NextResponse } from "next/server";
 import { ApiAuthError, requireApiSession } from "@/lib/auth";
+import { isComplimentaryEmail } from "@/lib/billing";
 import { getCustomerPortalUrl } from "@/lib/lemonsqueezy";
 
 export async function POST() {
   try {
     const session = await requireApiSession();
+    if (
+      isComplimentaryEmail(session.email) ||
+      session.org.lemon_squeezy_subscription_status === "complimentary"
+    ) {
+      return NextResponse.json(
+        { error: "This account has complimentary access. There is no billing portal." },
+        { status: 400 }
+      );
+    }
     const url = await getCustomerPortalUrl({
       subscriptionId: session.org.lemon_squeezy_subscription_id,
       customerId: session.org.lemon_squeezy_customer_id,

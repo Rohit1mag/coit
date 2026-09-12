@@ -40,11 +40,19 @@ async function syncSubscription(input: {
   };
 
   if (input.orgId) {
-    await admin.from("organizations").update(payload).eq("id", input.orgId);
+    await admin
+      .from("organizations")
+      .update(payload)
+      .eq("id", input.orgId)
+      .neq("lemon_squeezy_subscription_status", "complimentary");
     return;
   }
 
-  await admin.from("organizations").update(payload).eq("lemon_squeezy_customer_id", input.customerId);
+  await admin
+    .from("organizations")
+    .update(payload)
+    .eq("lemon_squeezy_customer_id", input.customerId)
+    .neq("lemon_squeezy_subscription_status", "complimentary");
 }
 
 export async function POST(request: Request) {
