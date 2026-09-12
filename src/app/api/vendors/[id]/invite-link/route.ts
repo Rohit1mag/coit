@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ApiAuthError, requireApiSession } from "@/lib/auth";
+import { jsonAuthError, requireProductAccess } from "@/lib/auth";
 import { ensureVendorInviteToken } from "@/lib/documents";
 import { getAppUrl } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
@@ -8,7 +8,7 @@ type RouteContext = { params: Promise<{ id: string }> };
 
 export async function POST(_request: Request, context: RouteContext) {
   try {
-    const session = await requireApiSession();
+    const session = await requireProductAccess();
     const { id } = await context.params;
     const supabase = await createClient();
 
@@ -36,9 +36,8 @@ export async function POST(_request: Request, context: RouteContext) {
 
     return NextResponse.json({ token, url: `${getAppUrl()}/upload/${token}` });
   } catch (error) {
-    if (error instanceof ApiAuthError) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const authError = jsonAuthError(error);
+    if (authError) return authError;
     const message = error instanceof Error ? error.message : "Could not create invite link";
     return NextResponse.json({ error: message }, { status: 500 });
   }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { ApiAuthError, requireApiSession } from "@/lib/auth";
+import { jsonAuthError, requireProductAccess } from "@/lib/auth";
 import { randomToken } from "@/lib/coi";
 import { sendInviteEmail } from "@/lib/email";
 import { getAppUrl } from "@/lib/env";
@@ -17,7 +17,7 @@ const bodySchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const session = await requireApiSession();
+    const session = await requireProductAccess();
 
     const body = bodySchema.parse(await request.json());
     const supabase = await createClient();
@@ -75,9 +75,8 @@ export async function POST(request: Request) {
     const url = `${getAppUrl()}/upload/${token}`;
     return NextResponse.json({ token, url, vendor_id: vendorId });
   } catch (error) {
-    if (error instanceof ApiAuthError) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const authError = jsonAuthError(error);
+    if (authError) return authError;
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid invite details." }, { status: 400 });
     }

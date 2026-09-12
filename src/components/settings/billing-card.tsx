@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { isPaidStatus } from "@/lib/coi";
+import type { BillingAccess } from "@/lib/billing";
 
 declare global {
   interface Window {
@@ -35,15 +35,29 @@ function openLemonUrl(url: string) {
   window.location.href = url;
 }
 
+function statusLabel(status: string, access: BillingAccess) {
+  if (status === "complimentary") return "Unlimited";
+  if (access.kind === "trial") {
+    const days = access.daysRemaining ?? 0;
+    return days === 1 ? "1 day left" : `${days} days left`;
+  }
+  if (access.kind === "ended") return "Trial ended";
+  if (status === "past_due") return "Past due";
+  if (access.kind === "subscribed") return "Active";
+  return status;
+}
+
 export function BillingCard({
   status,
+  access,
   configured,
 }: {
   status: string;
+  access: BillingAccess;
   configured: boolean;
 }) {
   const [busy, setBusy] = useState<"checkout" | "portal" | null>(null);
-  const subscribed = isPaidStatus(status);
+  const subscribed = access.kind === "subscribed";
 
   async function go(
     path: "/api/lemonsqueezy/checkout" | "/api/lemonsqueezy/portal",
@@ -72,14 +86,16 @@ export function BillingCard({
       <CardHeader>
         <div className="flex items-center justify-between gap-3">
           <CardTitle>Billing</CardTitle>
-          <Badge variant={subscribed ? "secondary" : "outline"}>
-            {status === "complimentary" ? "Unlimited trial" : status}
+          <Badge variant={access.allowed ? "secondary" : "outline"}>
+            {statusLabel(status, access)}
           </Badge>
         </div>
         <CardDescription>
           {status === "complimentary"
-            ? "This workspace has an unlimited complimentary trial. No payment is required."
-            : "$99/month, 14-day trial. The product works either way — this is just how you pay. Lemon Squeezy handles tax."}
+            ? "This workspace has complimentary access. No payment is required."
+            : access.kind === "ended"
+              ? "Your 14-day trial has ended. Subscribe to keep uploading, reviewing, and sending reminders."
+              : "14 days free from signup. Then $99/month. Lemon Squeezy handles tax."}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-wrap gap-2">
@@ -102,7 +118,7 @@ export function BillingCard({
         ) : (
           <Button disabled={busy !== null} onClick={() => go("/api/lemonsqueezy/checkout", "checkout")}>
             {busy === "checkout" ? <Loader2 className="size-4 animate-spin" /> : null}
-            Start 14-day trial
+            Subscribe — $99/mo
           </Button>
         )}
       </CardContent>

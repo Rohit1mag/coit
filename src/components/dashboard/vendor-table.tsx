@@ -51,7 +51,13 @@ function formatDate(value: string | null) {
   }
 }
 
-export function VendorTable({ vendors }: { vendors: VendorLatest[] }) {
+export function VendorTable({
+  vendors,
+  writesLocked = false,
+}: {
+  vendors: VendorLatest[];
+  writesLocked?: boolean;
+}) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
@@ -188,6 +194,7 @@ export function VendorTable({ vendors }: { vendors: VendorLatest[] }) {
                         variant="ghost"
                         size="icon"
                         aria-label={`Copy invite link for ${vendor.name}`}
+                        disabled={writesLocked}
                         onClick={() => copyInvite(vendor)}
                       >
                         <Copy className="size-4" />
@@ -197,6 +204,7 @@ export function VendorTable({ vendors }: { vendors: VendorLatest[] }) {
                         variant="ghost"
                         size="icon"
                         aria-label={`Remove ${vendor.name}`}
+                        disabled={writesLocked}
                         onClick={() => setPending(vendor)}
                       >
                         <Trash2 className="size-4" />

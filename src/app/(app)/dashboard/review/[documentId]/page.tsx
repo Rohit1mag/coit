@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { ReviewForm } from "@/components/dashboard/review-form";
 import { requireSession } from "@/lib/auth";
+import { getBillingAccess } from "@/lib/billing";
 import { signDocumentPaths } from "@/lib/documents";
 import { createClient } from "@/lib/supabase/server";
 import type { Document, Vendor } from "@/types/database";
@@ -65,7 +66,11 @@ export default async function ReviewDocumentPage({
           )}
         </div>
         <div className="rounded-xl border bg-card p-5 lg:w-[40%]">
-          <ReviewForm document={document} vendor={vendor} />
+          <ReviewForm
+            document={document}
+            vendor={vendor}
+            disabled={!getBillingAccess(session.org).allowed}
+          />
         </div>
       </div>
     </div>

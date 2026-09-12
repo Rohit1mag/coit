@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { ApiAuthError, requireApiSession } from "@/lib/auth";
+import { jsonAuthError, requireProductAccess } from "@/lib/auth";
 import { parseStorageObject } from "@/lib/parse-coi";
 
 export const maxDuration = 60;
@@ -17,7 +17,7 @@ const bodySchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const session = await requireApiSession();
+    const session = await requireProductAccess();
 
     const json = await request.json();
     const body = bodySchema.parse(json);
@@ -41,9 +41,8 @@ export async function POST(request: Request) {
       document: result.document,
     });
   } catch (error) {
-    if (error instanceof ApiAuthError) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const authError = jsonAuthError(error);
+    if (authError) return authError;
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
     }

@@ -25,9 +25,11 @@ import type { Document, ReviewStatus, Vendor } from "@/types/database";
 export function ReviewForm({
   document,
   vendor,
+  disabled = false,
 }: {
   document: Document;
   vendor: Pick<Vendor, "id" | "name" | "contact_email" | "trade">;
+  disabled?: boolean;
 }) {
   const router = useRouter();
   const [expirationDate, setExpirationDate] = useState(document.expiration_date ?? "");
@@ -43,6 +45,7 @@ export function ReviewForm({
     document.confidence_score == null || document.confidence_score < REVIEW_CONFIDENCE_THRESHOLD;
 
   async function submit(action: "approve" | "reject") {
+    if (disabled) return;
     setBusy(true);
     try {
       const response = await fetch(`/api/documents/${document.id}/review`, {
@@ -110,6 +113,7 @@ export function ReviewForm({
           id="gl-expiration"
           type="date"
           value={expirationDate}
+          disabled={disabled}
           onChange={(event) => setExpirationDate(event.target.value)}
         />
       </div>
@@ -119,6 +123,7 @@ export function ReviewForm({
         <Input
           id="gl-limit"
           value={limit}
+          disabled={disabled}
           onChange={(event) => setLimit(event.target.value)}
           placeholder="$1,000,000"
         />
@@ -129,6 +134,7 @@ export function ReviewForm({
         <Textarea
           id="notes"
           value={notes}
+          disabled={disabled}
           onChange={(event) => setNotes(event.target.value)}
           placeholder="Internal notes for the office"
           rows={3}
@@ -138,10 +144,10 @@ export function ReviewForm({
       <LiabilityDisclaimer />
 
       <div className="grid gap-2 sm:grid-cols-2">
-        <Button type="button" onClick={() => setConfirmOpen(true)} disabled={busy}>
+        <Button type="button" onClick={() => setConfirmOpen(true)} disabled={busy || disabled}>
           Confirm & Approve
         </Button>
-        <Button type="button" variant="outline" onClick={() => setRejectOpen(true)} disabled={busy}>
+        <Button type="button" variant="outline" onClick={() => setRejectOpen(true)} disabled={busy || disabled}>
           Reject & Request Re-upload
         </Button>
       </div>

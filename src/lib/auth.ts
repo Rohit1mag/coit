@@ -1,5 +1,6 @@
+import { NextResponse } from "next/server";
 import { redirect } from "next/navigation";
-import { isComplimentaryEmail } from "@/lib/billing";
+import { hasProductAccess, isComplimentaryEmail, TRIAL_ENDED_MESSAGE } from "@/lib/billing";
 import { createClient } from "@/lib/supabase/server";
 import type { Organization, Profile, SessionContext } from "@/types/database";
 
@@ -38,6 +39,11 @@ export async function getSessionContext(): Promise<SessionContext | null> {
     };
   }
 
+  if (!organization.alert_email && email) {
+    await supabase.from("organizations").update({ alert_email: email }).eq("id", organization.id);
+    organization = { ...organization, alert_email: email };
+  }
+
   const profileRow = profile as Profile & {
     organizations: Organization | Organization[];
   };
@@ -70,9 +76,34 @@ export async function requireApiSession() {
   return session;
 }
 
+export async function requireProductAccess() {
+  const session = await requireApiSession();
+  if (!hasProductAccess(session.org)) {
+    throw new BillingRequiredError();
+  }
+  return session;
+}
+
+export function jsonAuthError(error: unknown) {
+  if (error instanceof ApiAuthError) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (error instanceof BillingRequiredError) {
+    return NextResponse.json({ error: error.message }, { status: 402 });
+  }
+  return null;
+}
+
 export class ApiAuthError extends Error {
   status = 401;
   constructor() {
     super("Unauthorized");
+  }
+}
+
+export class BillingRequiredError extends Error {
+  status = 402;
+  constructor() {
+    super(TRIAL_ENDED_MESSAGE);
   }
 }

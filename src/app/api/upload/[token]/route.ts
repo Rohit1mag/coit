@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { hasProductAccess, PUBLIC_UPLOAD_PAUSED_MESSAGE } from "@/lib/billing";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { parseStorageObject } from "@/lib/parse-coi";
 import { STORAGE_BUCKET } from "@/lib/coi";
@@ -12,7 +13,7 @@ async function loadInvite(token: string) {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("invites")
-    .select("*, organizations(name)")
+    .select("*, organizations(name, created_at, lemon_squeezy_subscription_status)")
     .eq("token", token)
     .maybeSingle();
 
@@ -45,6 +46,15 @@ export async function POST(request: Request, context: RouteContext) {
     const invite = await loadInvite(token);
     if (!invite) {
       return NextResponse.json({ error: "This upload link is invalid or expired." }, { status: 404 });
+    }
+
+    const org = invite.organizations as
+      | { created_at: string; lemon_squeezy_subscription_status?: string | null }
+      | { created_at: string; lemon_squeezy_subscription_status?: string | null }[]
+      | null;
+    const billingOrg = Array.isArray(org) ? org[0] : org;
+    if (billingOrg && !hasProductAccess(billingOrg)) {
+      return NextResponse.json({ error: PUBLIC_UPLOAD_PAUSED_MESSAGE }, { status: 402 });
     }
 
     const form = await request.formData();

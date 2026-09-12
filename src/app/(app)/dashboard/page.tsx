@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { InviteDialog } from "@/components/dashboard/invite-dialog";
 import { MetricCards } from "@/components/dashboard/metric-cards";
 import { UploadCoiDialog } from "@/components/dashboard/upload-coi-dialog";
 import { VendorTable } from "@/components/dashboard/vendor-table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { requireSession } from "@/lib/auth";
+import { getBillingAccess } from "@/lib/billing";
 import { withPreviewUrls } from "@/lib/documents";
 import { createClient } from "@/lib/supabase/server";
 import type { VendorLatest } from "@/types/database";
@@ -23,6 +25,7 @@ export default async function DashboardPage() {
     throw new Error(error.message);
   }
 
+  const writesLocked = !getBillingAccess(session.org).allowed;
   const vendors = await withPreviewUrls((data ?? []) as VendorLatest[]);
   const pendingReview = vendors.filter(
     (row) => row.document_id && row.review_status !== "approved" && row.review_status !== "rejected",
@@ -34,6 +37,7 @@ export default async function DashboardPage() {
     (row) => row.review_status === "approved" && row.status === "expired",
   ).length;
   const missingVendorEmail = vendors.filter((row) => !row.contact_email).length;
+  const reminderEmail = session.org.alert_email?.trim();
 
   return (
     <div className="space-y-8">
@@ -46,12 +50,29 @@ export default async function DashboardPage() {
         </div>
         {vendors.length > 0 ? (
           <div className="flex flex-wrap gap-2">
-            <InviteDialog />
-            <UploadCoiDialog orgId={session.org.id} vendors={vendors} />
+            <InviteDialog disabled={writesLocked} />
+            <UploadCoiDialog orgId={session.org.id} vendors={vendors} disabled={writesLocked} />
           </div>
         ) : null}
       </div>
 
+      {!reminderEmail && !session.email ? (
+        <Alert>
+          <AlertTitle>Reminder email required</AlertTitle>
+          <AlertDescription>
+            Expiration emails will not send until you add a reminder inbox in{" "}
+            <Link href="/settings">Settings</Link>.
+          </AlertDescription>
+        </Alert>
+      ) : !reminderEmail ? (
+        <Alert>
+          <AlertTitle>Confirm your reminder email</AlertTitle>
+          <AlertDescription>
+            Save a reminder inbox in <Link href="/settings">Settings</Link> so expiration emails
+            have a destination. Subcontractors also need a contact email.
+          </AlertDescription>
+        </Alert>
+      ) : null}
       {missingVendorEmail > 0 ? (
         <Alert>
           <AlertTitle>
@@ -73,8 +94,8 @@ export default async function DashboardPage() {
             phone. We&apos;ll read the expiration and start watching it.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-2">
-            <UploadCoiDialog orgId={session.org.id} vendors={vendors} />
-            <InviteDialog />
+            <UploadCoiDialog orgId={session.org.id} vendors={vendors} disabled={writesLocked} />
+            <InviteDialog disabled={writesLocked} />
           </div>
         </div>
       ) : (
@@ -85,7 +106,7 @@ export default async function DashboardPage() {
             expiring={expiring}
             expired={expired}
           />
-          <VendorTable vendors={vendors} />
+          <VendorTable vendors={vendors} writesLocked={writesLocked} />
         </>
       )}
     </div>

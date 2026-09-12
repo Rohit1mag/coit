@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { ApiAuthError, requireApiSession } from "@/lib/auth";
+import { jsonAuthError, requireProductAccess } from "@/lib/auth";
 import { deriveStatus } from "@/lib/coi";
 import { ensureVendorInviteToken } from "@/lib/documents";
 import { sendRejectReuploadEmail } from "@/lib/email";
@@ -20,7 +20,7 @@ type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
   try {
-    const session = await requireApiSession();
+    const session = await requireProductAccess();
     const { id } = await context.params;
     const body = bodySchema.parse(await request.json());
     const supabase = await createClient();
@@ -77,6 +77,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         });
         await sendRejectReuploadEmail({
           to: vendor.contact_email,
+          cc: [session.email],
           contractorName: session.org.name,
           vendorName: vendor.name,
           token,
@@ -108,9 +109,8 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     return NextResponse.json({ ok: true, review_status: "approved" });
   } catch (error) {
-    if (error instanceof ApiAuthError) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const authError = jsonAuthError(error);
+    if (authError) return authError;
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid review payload." }, { status: 400 });
     }

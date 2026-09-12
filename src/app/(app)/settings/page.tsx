@@ -2,6 +2,7 @@ import { AlertCadenceForm } from "@/components/settings/alert-cadence-form";
 import { BillingCard } from "@/components/settings/billing-card";
 import { ReminderLog, type ReminderLogRow } from "@/components/settings/reminder-log";
 import { requireSession } from "@/lib/auth";
+import { getBillingAccess } from "@/lib/billing";
 import { isBillingConfigured } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -35,6 +36,7 @@ export default async function SettingsPage({
 }) {
   const session = await requireSession();
   const params = await searchParams;
+  const access = getBillingAccess(session.org);
   const logRows = await loadReminderLog(session.org.id);
 
   return (
@@ -59,10 +61,18 @@ export default async function SettingsPage({
 
       <BillingCard
         status={session.org.lemon_squeezy_subscription_status}
+        access={access}
         configured={isBillingConfigured()}
       />
-      <AlertCadenceForm cadences={session.org.alert_cadences ?? [30, 14, 7]} />
-      <ReminderLog rows={logRows} />
+      <AlertCadenceForm
+        cadences={session.org.alert_cadences ?? [30, 14, 7]}
+        alertEmail={session.org.alert_email ?? session.email ?? ""}
+        disabled={!access.allowed}
+      />
+      <ReminderLog
+        rows={logRows}
+        fallbackEmail={session.org.alert_email ?? session.email ?? ""}
+      />
     </div>
   );
 }

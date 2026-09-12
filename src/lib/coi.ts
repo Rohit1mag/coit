@@ -66,7 +66,8 @@ export function isPaidStatus(status: string | null | undefined) {
     status === "active" ||
     status === "on_trial" ||
     status === "trialing" ||
-    status === "complimentary"
+    status === "complimentary" ||
+    status === "past_due"
   );
 }
 
