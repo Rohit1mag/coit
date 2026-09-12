@@ -165,7 +165,7 @@ export function VendorTable({
               </TableRow>
             ) : (
               rows.map((vendor) => (
-                <TableRow key={vendor.vendor_id}>
+                <TableRow key={`${vendor.vendor_id}:${vendor.document_id ?? "none"}`}>
                   <TableCell className="font-medium">{vendor.name}</TableCell>
                   <TableCell className="text-muted-foreground">
                     {vendor.contact_email ?? (

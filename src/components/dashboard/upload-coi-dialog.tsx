@@ -123,7 +123,8 @@ export function UploadCoiDialog({
             <DialogTitle>Upload certificate</DialogTitle>
             <DialogDescription>
               Drop an ACORD 25 PDF or photo. We extract dates, limits, and vendor name
-              automatically.
+              automatically. A new upload adds another certificate unless you pick an existing
+              vendor.
             </DialogDescription>
           </DialogHeader>
 
@@ -174,7 +175,7 @@ export function UploadCoiDialog({
                   }}
                   className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
                 >
-                  <option value="">Create new vendor from the COI</option>
+                  <option value="">Create a new row (do not replace an existing vendor)</option>
                   {vendors.map((vendor) => (
                     <option key={vendor.vendor_id} value={vendor.vendor_id}>
                       {vendor.name}

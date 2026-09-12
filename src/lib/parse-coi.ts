@@ -120,6 +120,7 @@ export async function upsertVendorAndDocument(input: {
   contactEmail?: string | null;
   trade?: string | null;
   uploadToken?: string | null;
+  reuseVendor?: boolean;
 }) {
   const admin = createAdminClient();
   const name =
@@ -141,7 +142,7 @@ export async function upsertVendorAndDocument(input: {
       .eq("id", vendorId)
       .eq("org_id", input.orgId);
   } else {
-    if (input.contactEmail) {
+    if (input.reuseVendor !== false && input.contactEmail) {
       const { data: existing } = await admin
         .from("vendors")
         .select("id")
@@ -151,7 +152,7 @@ export async function upsertVendorAndDocument(input: {
       vendorId = existing?.id ?? null;
     }
 
-    if (!vendorId) {
+    if (input.reuseVendor !== false && !vendorId) {
       const { data: byName } = await admin
         .from("vendors")
         .select("id")
@@ -230,6 +231,7 @@ export async function parseStorageObject(input: {
   contactEmail?: string | null;
   trade?: string | null;
   uploadToken?: string | null;
+  reuseVendor?: boolean;
 }) {
   const file = await downloadStorageObject(input.path);
 

@@ -6,27 +6,39 @@ import { VendorTable } from "@/components/dashboard/vendor-table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { requireSession } from "@/lib/auth";
 import { getBillingAccess } from "@/lib/billing";
-import { withPreviewUrls } from "@/lib/documents";
+import { toCertificateRows, uniqueVendors, withPreviewUrls } from "@/lib/documents";
 import { createClient } from "@/lib/supabase/server";
-import type { VendorLatest } from "@/types/database";
+import type { Document, Vendor } from "@/types/database";
 
 export const metadata = { title: "Certificates" };
 
 export default async function DashboardPage() {
   const session = await requireSession();
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("vendor_latest_documents")
-    .select("*")
-    .eq("org_id", session.org.id)
-    .order("name");
+  const [vendorResult, documentResult] = await Promise.all([
+    supabase.from("vendors").select("*").eq("org_id", session.org.id).order("name"),
+    supabase
+      .from("documents")
+      .select("*")
+      .eq("org_id", session.org.id)
+      .order("created_at", { ascending: false }),
+  ]);
 
-  if (error) {
-    throw new Error(error.message);
+  if (vendorResult.error) {
+    throw new Error(vendorResult.error.message);
+  }
+  if (documentResult.error) {
+    throw new Error(documentResult.error.message);
   }
 
   const writesLocked = !getBillingAccess(session.org).allowed;
-  const vendors = await withPreviewUrls((data ?? []) as VendorLatest[]);
+  const vendors = await withPreviewUrls(
+    toCertificateRows(
+      (vendorResult.data ?? []) as Vendor[],
+      (documentResult.data ?? []) as Document[],
+    ),
+  );
+  const vendorOptions = uniqueVendors(vendors);
   const pendingReview = vendors.filter(
     (row) => row.document_id && row.review_status !== "approved" && row.review_status !== "rejected",
   ).length;
@@ -36,7 +48,7 @@ export default async function DashboardPage() {
   const expired = vendors.filter(
     (row) => row.review_status === "approved" && row.status === "expired",
   ).length;
-  const missingVendorEmail = vendors.filter((row) => !row.contact_email).length;
+  const missingVendorEmail = vendorOptions.filter((row) => !row.contact_email).length;
   const reminderEmail = session.org.alert_email?.trim();
 
   return (
@@ -51,7 +63,7 @@ export default async function DashboardPage() {
         {vendors.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             <InviteDialog disabled={writesLocked} />
-            <UploadCoiDialog orgId={session.org.id} vendors={vendors} disabled={writesLocked} />
+            <UploadCoiDialog orgId={session.org.id} vendors={vendorOptions} disabled={writesLocked} />
           </div>
         ) : null}
       </div>
@@ -94,14 +106,14 @@ export default async function DashboardPage() {
             phone. We&apos;ll read the expiration and start watching it.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-2">
-            <UploadCoiDialog orgId={session.org.id} vendors={vendors} disabled={writesLocked} />
+            <UploadCoiDialog orgId={session.org.id} vendors={vendorOptions} disabled={writesLocked} />
             <InviteDialog disabled={writesLocked} />
           </div>
         </div>
       ) : (
         <>
           <MetricCards
-            active={vendors.length}
+            active={vendorOptions.length}
             pendingReview={pendingReview}
             expiring={expiring}
             expired={expired}

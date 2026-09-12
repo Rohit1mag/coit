@@ -34,6 +34,7 @@ export async function POST(request: Request) {
       contactName: body.contact_name,
       contactEmail: body.contact_email,
       trade: body.trade,
+      reuseVendor: Boolean(body.vendor_id),
     });
 
     return NextResponse.json({
