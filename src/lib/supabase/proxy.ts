@@ -41,7 +41,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(login);
   }
 
-  if (isAuthRoute && user) {
+  if (user && (isAuthRoute || path === "/")) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
