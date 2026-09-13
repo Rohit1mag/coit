@@ -2,6 +2,7 @@
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { userFacingError } from "@/lib/user-error";
 
 export default function SettingsError({
   error,
@@ -14,7 +15,7 @@ export default function SettingsError({
     <Alert variant="destructive">
       <AlertTitle>Settings failed to load</AlertTitle>
       <AlertDescription className="flex flex-col gap-3">
-        <span>{error.message}</span>
+        <span>{userFacingError(error)}</span>
         <Button variant="outline" onClick={reset} className="w-fit">
           Try again
         </Button>

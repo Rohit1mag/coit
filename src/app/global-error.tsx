@@ -1,5 +1,7 @@
 "use client";
 
+import { userFacingError } from "@/lib/user-error";
+
 export default function GlobalError({
   error,
   reset,
@@ -11,7 +13,7 @@ export default function GlobalError({
     <html lang="en">
       <body className="flex min-h-full flex-col items-center justify-center gap-3 p-8">
         <h1 className="text-lg font-semibold">Something went wrong</h1>
-        <p className="text-sm text-neutral-600">{error.message}</p>
+        <p className="text-sm text-neutral-600">{userFacingError(error)}</p>
         <button
           type="button"
           onClick={reset}
