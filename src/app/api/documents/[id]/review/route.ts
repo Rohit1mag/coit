@@ -75,14 +75,18 @@ export async function PATCH(request: Request, context: RouteContext) {
           contactEmail: vendor.contact_email,
           trade: vendor.trade,
         });
-        await sendRejectReuploadEmail({
-          to: vendor.contact_email,
-          cc: [session.email],
-          contractorName: session.org.name,
-          vendorName: vendor.name,
-          token,
-          reason,
-        });
+        try {
+          await sendRejectReuploadEmail({
+            to: vendor.contact_email,
+            cc: [session.email],
+            contractorName: session.org.name,
+            vendorName: vendor.name,
+            token,
+            reason,
+          });
+        } catch (error) {
+          console.error("Reject email failed", error);
+        }
       }
 
       return NextResponse.json({ ok: true, review_status: "rejected" });

@@ -12,6 +12,17 @@ function fromAddress() {
   return process.env.EMAIL_FROM?.trim() || "SubCertify <onboarding@resend.dev>";
 }
 
+async function sendEmail(payload: {
+  from: string;
+  to: string | string[];
+  cc?: string[];
+  subject: string;
+  html: string;
+}) {
+  const { error } = await getResend().emails.send(payload);
+  if (error) throw new Error(error.message);
+}
+
 function layout(title: string, body: string) {
   return `<!DOCTYPE html>
 <html>
@@ -58,7 +69,6 @@ export async function sendExpirationEmails(input: {
   }
 
   const uploadUrl = `${getAppUrl()}/upload/${input.uploadToken}`;
-  const resend = getResend();
   const subject = `Action Required: Update your Certificate of Insurance for ${input.contractorName}`;
   const vendorHtml = layout(
     input.alertType === "expired"
@@ -81,7 +91,7 @@ export async function sendExpirationEmails(input: {
   if (recipients.length === 0) return [];
 
   if (input.vendorEmail) {
-    await resend.emails.send({
+    await sendEmail({
       from: fromAddress(),
       to: input.vendorEmail,
       cc: input.contractorEmails.length > 0 ? input.contractorEmails : undefined,
@@ -91,7 +101,7 @@ export async function sendExpirationEmails(input: {
     return recipients;
   }
 
-  await resend.emails.send({
+  await sendEmail({
     from: fromAddress(),
     to: input.contractorEmails,
     subject,
@@ -108,9 +118,11 @@ export async function sendRejectReuploadEmail(input: {
   token: string;
   reason: string;
 }) {
-  if (!isEmailConfigured()) return;
+  if (!isEmailConfigured()) {
+    throw new Error("RESEND_API_KEY is not set");
+  }
   const uploadUrl = `${getAppUrl()}/upload/${input.token}`;
-  await getResend().emails.send({
+  await sendEmail({
     from: fromAddress(),
     to: input.to,
     cc: input.cc?.length ? input.cc : undefined,
@@ -132,9 +144,11 @@ export async function sendInviteEmail(input: {
   vendorName: string;
   token: string;
 }) {
-  if (!isEmailConfigured()) return;
+  if (!isEmailConfigured()) {
+    throw new Error("RESEND_API_KEY is not set");
+  }
   const uploadUrl = `${getAppUrl()}/upload/${input.token}`;
-  await getResend().emails.send({
+  await sendEmail({
     from: fromAddress(),
     to: input.to,
     subject: `${input.contractorName} requested your certificate of insurance`,

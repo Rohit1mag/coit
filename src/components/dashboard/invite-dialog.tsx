@@ -52,12 +52,23 @@ export function InviteDialog({ disabled }: { disabled?: boolean }) {
           send_email: sendEmail,
         }),
       });
-      const payload = (await response.json()) as { error?: string; url?: string };
+      const payload = (await response.json()) as {
+        error?: string;
+        url?: string;
+        emailed?: boolean;
+        emailError?: string | null;
+      };
       if (!response.ok || !payload.url) {
         throw new Error(payload.error ?? "Could not create invite");
       }
       setLink(payload.url);
-      toast.success(sendEmail ? "Invite sent." : "Upload link created.");
+      if (sendEmail && payload.emailed) {
+        toast.success("Invite emailed.");
+      } else if (sendEmail && payload.emailError) {
+        toast.error(payload.emailError);
+      } else {
+        toast.success("Upload link created.");
+      }
       router.refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Invite failed");

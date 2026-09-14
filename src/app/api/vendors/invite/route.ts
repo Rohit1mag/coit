@@ -55,25 +55,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: inviteError.message }, { status: 400 });
     }
 
-    const gcEmails = new Set(
-      [session.email, session.org.alert_email]
-        .map((email) => email?.trim().toLowerCase())
-        .filter(Boolean)
-    );
-    const shouldEmailSub =
-      body.send_email !== false && !gcEmails.has(body.contact_email.trim().toLowerCase());
+    const url = `${getAppUrl()}/upload/${token}`;
+    let emailed = false;
+    let emailError: string | null = null;
 
-    if (shouldEmailSub) {
-      await sendInviteEmail({
-        to: body.contact_email,
-        contractorName: session.org.name,
-        vendorName: body.vendor_name,
-        token,
-      });
+    if (body.send_email !== false) {
+      try {
+        await sendInviteEmail({
+          to: body.contact_email,
+          contractorName: session.org.name,
+          vendorName: body.vendor_name,
+          token,
+        });
+        emailed = true;
+      } catch (error) {
+        emailError = error instanceof Error ? error.message : "Email failed";
+      }
     }
 
-    const url = `${getAppUrl()}/upload/${token}`;
-    return NextResponse.json({ token, url, vendor_id: vendorId });
+    return NextResponse.json({ token, url, vendor_id: vendorId, emailed, emailError });
   } catch (error) {
     const authError = jsonAuthError(error);
     if (authError) return authError;
