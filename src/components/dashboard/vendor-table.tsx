@@ -4,11 +4,11 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format, parseISO } from "date-fns";
-import { Copy, Loader2, Search, Trash2 } from "lucide-react";
+import { Copy, FileSearch, Loader2, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/status-badge";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -209,15 +209,16 @@ export function VendorTable({
                         <Badge variant="outline">Awaiting COI</Badge>
                       )}
                       {reviewHref ? (
-                        <Link
-                          href={reviewHref}
-                          className={buttonVariants({
-                            variant: needsReview ? "default" : "outline",
-                            size: "sm",
-                          })}
+                        <Button
+                          type="button"
+                          variant={needsReview ? "default" : "outline"}
+                          size="sm"
+                          className="h-7 shrink-0 border px-2.5"
+                          onClick={() => router.push(reviewHref)}
                         >
+                          <FileSearch className="size-3.5" />
                           Review
-                        </Link>
+                        </Button>
                       ) : null}
                     </div>
                   </TableCell>
