@@ -7,7 +7,8 @@ import { format, parseISO } from "date-fns";
 import { Copy, Loader2, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/status-badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -66,7 +67,7 @@ export function VendorTable({
   const [removed, setRemoved] = useState<string[]>([]);
 
   const rows = useMemo(() => {
-    return vendors.filter((vendor) => {
+    const filtered = vendors.filter((vendor) => {
       if (removed.includes(vendor.vendor_id)) return false;
       const haystack = [vendor.name, vendor.contact_email, vendor.trade]
         .filter(Boolean)
@@ -81,6 +82,12 @@ export function VendorTable({
         (status === "pending_review" && review === "pending_review") ||
         (status === "rejected" && review === "rejected");
       return matchesQuery && matchesStatus;
+    });
+
+    return filtered.sort((a, b) => {
+      const aNeeds = a.document_id && a.review_status !== "approved" ? 0 : 1;
+      const bNeeds = b.document_id && b.review_status !== "approved" ? 0 : 1;
+      return aNeeds - bNeeds;
     });
   }, [vendors, query, status, removed]);
 
@@ -144,7 +151,7 @@ export function VendorTable({
         </Select>
       </div>
 
-      <div className="overflow-hidden rounded-xl border bg-background">
+      <div className="rounded-xl border bg-background">
         <Table>
           <TableHeader>
             <TableRow>
@@ -164,9 +171,24 @@ export function VendorTable({
                 </TableCell>
               </TableRow>
             ) : (
-              rows.map((vendor) => (
+              rows.map((vendor) => {
+                const reviewHref = vendor.document_id
+                  ? `/dashboard/review/${vendor.document_id}`
+                  : null;
+                const needsReview =
+                  Boolean(reviewHref) && vendor.review_status !== "approved";
+
+                return (
                 <TableRow key={`${vendor.vendor_id}:${vendor.document_id ?? "none"}`}>
-                  <TableCell className="font-medium">{vendor.name}</TableCell>
+                  <TableCell className="font-medium">
+                    {reviewHref ? (
+                      <Link href={reviewHref} className="hover:underline">
+                        {vendor.name}
+                      </Link>
+                    ) : (
+                      vendor.name
+                    )}
+                  </TableCell>
                   <TableCell className="text-muted-foreground">
                     {vendor.contact_email ?? (
                       <span className="text-destructive">Missing — sub won&apos;t get reminders</span>
@@ -177,18 +199,30 @@ export function VendorTable({
                     {formatDate(vendor.expiration_date)}
                   </TableCell>
                   <TableCell>
-                    <StatusBadge
-                      status={vendor.status as DocumentStatus | null}
-                      review={vendor.review_status}
-                    />
+                    <div className="flex items-center gap-2">
+                      {vendor.document_id ? (
+                        <StatusBadge
+                          status={vendor.status as DocumentStatus | null}
+                          review={vendor.review_status}
+                        />
+                      ) : (
+                        <Badge variant="outline">Awaiting COI</Badge>
+                      )}
+                      {reviewHref ? (
+                        <Link
+                          href={reviewHref}
+                          className={buttonVariants({
+                            variant: needsReview ? "default" : "outline",
+                            size: "sm",
+                          })}
+                        >
+                          Review
+                        </Link>
+                      ) : null}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      {vendor.document_id ? (
-                        <Button type="button" variant="outline" size="sm" asChild>
-                          <Link href={`/dashboard/review/${vendor.document_id}`}>Review</Link>
-                        </Button>
-                      ) : null}
                       <Button
                         type="button"
                         variant="ghost"
@@ -212,7 +246,8 @@ export function VendorTable({
                     </div>
                   </TableCell>
                 </TableRow>
-              ))
+                );
+              })
             )}
           </TableBody>
         </Table>

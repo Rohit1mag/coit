@@ -85,6 +85,19 @@ export default async function DashboardPage() {
           </AlertDescription>
         </Alert>
       ) : null}
+      {pendingReview > 0 ? (
+        <Alert>
+          <AlertTitle>
+            {pendingReview === 1
+              ? "1 certificate is waiting for review"
+              : `${pendingReview} certificates are waiting for review`}
+          </AlertTitle>
+          <AlertDescription>
+            Confirm the expiration date on the PDF. Leaving review without approving still saves
+            the upload — use Review on that row to finish.
+          </AlertDescription>
+        </Alert>
+      ) : null}
       {missingVendorEmail > 0 ? (
         <Alert>
           <AlertTitle>
