@@ -3,11 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function MetricCards({
   active,
+  activeLimit,
   pendingReview,
   expiring,
   expired,
 }: {
   active: number;
+  activeLimit: number;
   pendingReview: number;
   expiring: number;
   expired: number;
@@ -16,7 +18,7 @@ export function MetricCards({
     {
       label: "Active subcontractors",
       value: active,
-      hint: "Subs on file",
+      hint: `${active} of ${activeLimit} on this account`,
       icon: Building2,
       className: "",
     },

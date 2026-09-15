@@ -25,10 +25,12 @@ export function UploadCoiDialog({
   orgId,
   vendors,
   disabled,
+  atLimit,
 }: {
   orgId: string;
   vendors: VendorLatest[];
   disabled?: boolean;
+  atLimit?: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -61,6 +63,10 @@ export function UploadCoiDialog({
     event.preventDefault();
     if (!file) {
       toast.error("Drop or choose a COI PDF or image.");
+      return;
+    }
+    if (atLimit && !vendorId) {
+      toast.error("This account has reached the 50-subcontractor limit. Pick an existing vendor.");
       return;
     }
 
@@ -123,8 +129,10 @@ export function UploadCoiDialog({
             <DialogTitle>Upload certificate</DialogTitle>
             <DialogDescription>
               Drop an ACORD 25 PDF or photo. We extract dates, limits, and vendor name
-              automatically. A new upload adds another certificate unless you pick an existing
-              vendor.
+              automatically.
+              {atLimit
+                ? " This account is at the 50-subcontractor limit, so pick an existing vendor."
+                : " A new upload adds another certificate unless you pick an existing vendor."}
             </DialogDescription>
           </DialogHeader>
 
@@ -162,6 +170,7 @@ export function UploadCoiDialog({
                 <Label htmlFor="existing-vendor">Existing vendor</Label>
                 <select
                   id="existing-vendor"
+                  required={atLimit}
                   value={vendorId}
                   onChange={(event) => {
                     const id = event.target.value;
@@ -175,7 +184,11 @@ export function UploadCoiDialog({
                   }}
                   className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
                 >
-                  <option value="">Create a new row (do not replace an existing vendor)</option>
+                  {atLimit ? (
+                    <option value="">Select an existing vendor</option>
+                  ) : (
+                    <option value="">Create a new row (do not replace an existing vendor)</option>
+                  )}
                   {vendors.map((vendor) => (
                     <option key={vendor.vendor_id} value={vendor.vendor_id}>
                       {vendor.name}

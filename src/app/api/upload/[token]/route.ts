@@ -3,6 +3,7 @@ import { hasProductAccess, PUBLIC_UPLOAD_PAUSED_MESSAGE } from "@/lib/billing";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { parseStorageObject } from "@/lib/parse-coi";
 import { STORAGE_BUCKET } from "@/lib/coi";
+import { VendorLimitError } from "@/lib/vendors";
 
 export const maxDuration = 60;
 export const runtime = "nodejs";
@@ -106,6 +107,9 @@ export async function POST(request: Request, context: RouteContext) {
       status: result.document.status,
     });
   } catch (error) {
+    if (error instanceof VendorLimitError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
     const message = error instanceof Error ? error.message : "Upload failed";
     return NextResponse.json({ error: message }, { status: 500 });
   }

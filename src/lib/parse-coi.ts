@@ -4,6 +4,7 @@ import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { deriveStatus, STORAGE_BUCKET } from "@/lib/coi";
+import { assertCanCreateVendor } from "@/lib/vendors";
 import type { CoiExtraction } from "@/types/database";
 
 function toIsoDate(value: string) {
@@ -173,6 +174,7 @@ export async function upsertVendorAndDocument(input: {
         })
         .eq("id", vendorId);
     } else {
+      await assertCanCreateVendor(admin, input.orgId);
       const { data: created, error } = await admin
         .from("vendors")
         .insert({

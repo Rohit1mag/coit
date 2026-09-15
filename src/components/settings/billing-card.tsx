@@ -36,7 +36,7 @@ function openLemonUrl(url: string) {
 }
 
 function statusLabel(status: string, access: BillingAccess) {
-  if (status === "complimentary") return "Unlimited";
+  if (status === "complimentary") return "Complimentary";
   if (access.kind === "trial") {
     const days = access.daysRemaining ?? 0;
     return days === 1 ? "1 day left" : `${days} days left`;

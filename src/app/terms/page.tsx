@@ -21,8 +21,9 @@ export default function TermsPage() {
             subcontractor starts work.
           </p>
           <p>
-            The service is billed at $99 per month after a 14-day trial, unless you cancel. Lemon
-            Squeezy is the merchant of record for paid subscriptions.
+            The service is billed at $99 per month after a 14-day trial, unless you cancel. Each
+            account can track up to 50 subcontractors. Lemon Squeezy is the merchant of record for
+            paid subscriptions.
           </p>
           <p>
             We may suspend an account that abuses upload, email, or authentication systems. You may

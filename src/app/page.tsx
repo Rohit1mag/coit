@@ -24,7 +24,7 @@ const steps = [
 ];
 
 const included = [
-  "Unlimited subcontractors",
+  "50 subcontractors per account",
   "AI extraction from ACORD 25 PDFs and photos",
   "1-click split-screen review before a COI is approved",
   "Public upload links (no vendor account)",

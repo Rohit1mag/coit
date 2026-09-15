@@ -8,6 +8,7 @@ import { requireSession } from "@/lib/auth";
 import { getBillingAccess } from "@/lib/billing";
 import { toCertificateRows, uniqueVendors, withPreviewUrls } from "@/lib/documents";
 import { createClient } from "@/lib/supabase/server";
+import { MAX_VENDORS_PER_ORG } from "@/lib/vendors";
 import type { Document, Vendor } from "@/types/database";
 
 export const metadata = { title: "Certificates" };
@@ -39,6 +40,7 @@ export default async function DashboardPage() {
     ),
   );
   const vendorOptions = uniqueVendors(vendors);
+  const atVendorLimit = vendorOptions.length >= MAX_VENDORS_PER_ORG;
   const pendingReview = vendors.filter(
     (row) => row.document_id && row.review_status !== "approved" && row.review_status !== "rejected",
   ).length;
@@ -62,8 +64,13 @@ export default async function DashboardPage() {
         </div>
         {vendors.length > 0 ? (
           <div className="flex flex-wrap gap-2">
-            <InviteDialog disabled={writesLocked} />
-            <UploadCoiDialog orgId={session.org.id} vendors={vendorOptions} disabled={writesLocked} />
+            <InviteDialog disabled={writesLocked || atVendorLimit} />
+            <UploadCoiDialog
+              orgId={session.org.id}
+              vendors={vendorOptions}
+              disabled={writesLocked}
+              atLimit={atVendorLimit}
+            />
           </div>
         ) : null}
       </div>
@@ -98,6 +105,15 @@ export default async function DashboardPage() {
           </AlertDescription>
         </Alert>
       ) : null}
+      {atVendorLimit ? (
+        <Alert>
+          <AlertTitle>50-subcontractor limit reached</AlertTitle>
+          <AlertDescription>
+            This account can track {MAX_VENDORS_PER_ORG} subcontractors. Remove one to invite or
+            upload a new vendor. Existing certificates can still be updated.
+          </AlertDescription>
+        </Alert>
+      ) : null}
       {missingVendorEmail > 0 ? (
         <Alert>
           <AlertTitle>
@@ -119,14 +135,20 @@ export default async function DashboardPage() {
             phone. We&apos;ll read the expiration and start watching it.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-2">
-            <UploadCoiDialog orgId={session.org.id} vendors={vendorOptions} disabled={writesLocked} />
-            <InviteDialog disabled={writesLocked} />
+            <UploadCoiDialog
+              orgId={session.org.id}
+              vendors={vendorOptions}
+              disabled={writesLocked}
+              atLimit={atVendorLimit}
+            />
+            <InviteDialog disabled={writesLocked || atVendorLimit} />
           </div>
         </div>
       ) : (
         <>
           <MetricCards
             active={vendorOptions.length}
+            activeLimit={MAX_VENDORS_PER_ORG}
             pendingReview={pendingReview}
             expiring={expiring}
             expired={expired}

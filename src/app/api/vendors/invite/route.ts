@@ -5,6 +5,7 @@ import { randomToken } from "@/lib/coi";
 import { sendInviteEmail } from "@/lib/email";
 import { getAppUrl } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
+import { assertCanCreateVendor, VendorLimitError } from "@/lib/vendors";
 
 const bodySchema = z.object({
   vendor_id: z.string().uuid().optional(),
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
 
     let vendorId = body.vendor_id ?? null;
     if (!vendorId) {
+      await assertCanCreateVendor(supabase, session.org.id);
       const { data: vendor, error } = await supabase
         .from("vendors")
         .insert({
@@ -77,6 +79,9 @@ export async function POST(request: Request) {
   } catch (error) {
     const authError = jsonAuthError(error);
     if (authError) return authError;
+    if (error instanceof VendorLimitError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid invite details." }, { status: 400 });
     }

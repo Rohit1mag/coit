@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { jsonAuthError, requireProductAccess } from "@/lib/auth";
 import { parseStorageObject } from "@/lib/parse-coi";
+import { VendorLimitError } from "@/lib/vendors";
 
 export const maxDuration = 60;
 export const runtime = "nodejs";
@@ -44,6 +45,9 @@ export async function POST(request: Request) {
   } catch (error) {
     const authError = jsonAuthError(error);
     if (authError) return authError;
+    if (error instanceof VendorLimitError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
     }
